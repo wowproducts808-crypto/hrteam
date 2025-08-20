@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>➕ Создать новую вакансию</h2>
+
+{% if error %}
+  <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    ❌ {{ error }}
+  </div>
+{% endif %}
+
+<form method="post" action="/jobs/new" style="max-width: 800px;">
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+    <div>
+      <label style="display: block; font-weight: bold; margin-bottom: 5px;">Название вакансии *</label>
+      <input type="text" name="title" required placeholder="Python Developer, HR Manager..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+    </div>
+    <div>
+      <label style="display: block; font-weight: bold; margin-bottom: 5px;">Местоположение</label>
+      <input type="text" name="location" placeholder="Алматы, удаленно..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+    </div>
+  </div>
+
+  <div style="margin-bottom: 20px;">
+    <label style="display: block; font-weight: bold; margin-bottom: 5px;">Краткое описание *</label>
+    <input type="text" name="short_description" required placeholder="В 1-2 предложениях опишите суть вакансии" maxlength="200" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+    <small style="color: #6c757d;">Это описание будет отображаться в списке вакансий</small>
+  </div>
+
+  <div style="margin-bottom: 20px;">
+    <label style="display: block; font-weight: bold; margin-bottom: 5px;">Полное описание *</label>
+    <textarea name="description" rows="6" required placeholder="Подробное описание вакансии, обязанности, проекты..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; resize: vertical;"></textarea>
+  </div>
+
+  <div style="margin-bottom: 20px;">
+    <label style="display: block; font-weight: bold; margin-bottom: 5px;">Требования к кандидату</label>
+    <textarea name="requirements" rows="4" placeholder="Необходимые навыки, опыт, образование..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; resize: vertical;"></textarea>
+  </div>
+
+  <div style="margin-bottom: 20px;">
+    <label style="display: block; font-weight: bold; margin-bottom: 5px;">Что предлагаем</label>
+    <textarea name="benefits" rows="4" placeholder="Бонусы, льготы, возможности развития..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; resize: vertical;"></textarea>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+    <div>
+      <label style="display: block; font-weight: bold; margin-bottom: 5px;">Тип занятости</label>
+      <select name="employment_type" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+        <option value="full-time">Полная занятость</option>
+        <option value="part-time">Частичная занятость</option>
+        <option value="remote">Удаленная работа</option>
+        <option value="contract">По контракту</option>
+      </select>
+    </div>
+    <div>
+      <label style="display: block; font-weight: bold; margin-bottom: 5px;">Уровень опыта</label>
+      <select name="experience_level" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+        <option value="junior">Junior</option>
+        <option value="middle" selected>Middle</option>
+        <option value="senior">Senior</option>
+        <option value="lead">Lead/Principal</option>
+      </select>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+    <div>
+      <label style="display: block; font-weight: bold; margin-bottom: 5px;">Зарплата от * (тенге)</label>
+      <input type="number" name="salary_min" required placeholder="500000" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+    </div>
+    <div>
+      <label style="display: block; font-weight: bold; margin-bottom: 5px;">Зарплата до * (тенге)</label>
+      <input type="number" name="salary_max" required placeholder="1000000" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 15px;">
+    <button type="submit" style="background: #28a745; color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+      ✅ Создать вакансию
+    </button>
+    <a href="/jobs" style="background: #6c757d; color: white; padding: 12px 24px; border-radius: 5px; text-decoration: none;">
+      ❌ Отмена
+    </a>
+  </div>
+</form>
+{% endblock %}

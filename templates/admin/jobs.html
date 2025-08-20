@@ -1,0 +1,67 @@
+<!-- templates/admin/jobs.html -->
+{% extends "base.html" %}
+{% block content %}
+<div style="padding: 20px;">
+    <h1>Управление вакансиями</h1>
+    
+    <div style="margin-bottom: 20px;">
+        <a href="/admin/jobs?status=pending" style="margin-right: 10px; padding: 10px; background: #ffc107; color: black; text-decoration: none; border-radius: 5px;">На модерации ({{ pending_jobs }})</a>
+        <a href="/admin/jobs?status=open" style="margin-right: 10px; padding: 10px; background: #28a745; color: white; text-decoration: none; border-radius: 5px;">Открытые</a>
+        <a href="/admin/jobs?status=rejected" style="margin-right: 10px; padding: 10px; background: #dc3545; color: white; text-decoration: none; border-radius: 5px;">Отклоненные</a>
+        <a href="/admin/jobs" style="padding: 10px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">Все</a>
+    </div>
+
+    {% if jobs %}
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+            <thead>
+                <tr style="background: #f8f9fa;">
+                    <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Название</th>
+                    <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Работодатель</th>
+                    <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Статус</th>
+                    <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Дата создания</th>
+                    <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in jobs %}
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #dee2e6;">
+                        <strong>{{ job.title }}</strong><br>
+                        <small>{{ job.short_description[:100] }}{% if job.short_description|length > 100 %}...{% endif %}</small>
+                    </td>
+                    <td style="padding: 12px; border: 1px solid #dee2e6;">{{ job.employer.name }}</td>
+                    <td style="padding: 12px; border: 1px solid #dee2e6;">
+                        {% if job.status.value == 'pending' %}
+                            <span style="background: #ffc107; color: black; padding: 4px 8px; border-radius: 4px;">На модерации</span>
+                        {% elif job.status.value == 'open' %}
+                            <span style="background: #28a745; color: white; padding: 4px 8px; border-radius: 4px;">Открыта</span>
+                        {% elif job.status.value == 'rejected' %}
+                            <span style="background: #dc3545; color: white; padding: 4px 8px; border-radius: 4px;">Отклонена</span>
+                        {% else %}
+                            <span style="background: #6c757d; color: white; padding: 4px 8px; border-radius: 4px;">{{ job.status.value }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 12px; border: 1px solid #dee2e6;">{{ job.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                    <td style="padding: 12px; border: 1px solid #dee2e6;">
+                        {% if job.status.value == 'pending' %}
+                            <form method="post" action="/admin/jobs/{{ job.id }}/moderate" style="display: inline;">
+                                <input type="hidden" name="action" value="approve">
+                                <button type="submit" style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-right: 5px;">Одобрить</button>
+                            </form>
+                            <form method="post" action="/admin/jobs/{{ job.id }}/moderate" style="display: inline;">
+                                <input type="hidden" name="action" value="reject">
+                                <input type="hidden" name="comment" value="Не соответствует требованиям">
+                                <button type="submit" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Отклонить</button>
+                            </form>
+                        {% endif %}
+                        <a href="/jobs/{{ job.id }}" style="background: #007bff; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; margin-left: 5px;">Просмотр</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="text-align: center; padding: 40px; color: #6c757d;">Вакансий не найдено</p>
+    {% endif %}
+</div>
+{% endblock %}

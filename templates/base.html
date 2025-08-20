@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>HRteam</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <header style="background: #2c3e50; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="background: linear-gradient(135deg, #3498db, #2980b9); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(52,152,219,0.3);">
+        <i class="fas fa-users" style="color: white; font-size: 18px;"></i>
+      </div>
+      <h1 style="margin: 0; color: white; font-size: 24px; font-weight: bold;">HRteam</h1>
+    </div>
+    
+    <nav style="display: flex; align-items: center; gap: 20px;">
+      <a href="/" style="color: white; text-decoration: none;">Главная</a>
+      <a href="/jobs" style="color: white; text-decoration: none;">Вакансии</a>
+      <a href="/top-recruiters" style="color: white; text-decoration: none;">Топ рекрутеров</a>
+      <a href="/faq" style="color: white; text-decoration: none;">Вопросы и ответы</a>
+      
+      {% if current_user %}
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <!-- Кнопки для работодателей -->
+          {% if current_user.user_type.value == 'employer' %}
+            <a href="/my/jobs" style="color: white; text-decoration: none;">Мои вакансии</a>
+          {% endif %}
+          
+          <!-- Кнопки для рекрутеров -->
+          {% if current_user.user_type.value == 'recruiter' %}
+            <a href="/my/applications" style="color: white; text-decoration: none;">Мои отклики</a>
+          {% endif %}
+          
+          <!-- Кнопки для админов -->
+          {% if current_user.user_type.value == 'admin' %}
+            <a href="/admin" style="color: white; text-decoration: none; background: #e74c3c; padding: 5px 10px; border-radius: 5px;">🔧 Админ панель</a>
+          {% endif %}
+          
+          <a href="/messages" style="color: white; text-decoration: none;">Сообщения</a>
+          
+          <a href="/notifications" style="color: white; text-decoration: none;">
+            🔔 Уведомления
+            {% if unread_count > 0 %}
+              <span style="background: red; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px;">{{ unread_count }}</span>
+            {% endif %}
+          </a>
+          
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span>{{ current_user.name }} 
+              {% if current_user.user_type.value == 'employer' %}
+                <span style="font-size: 11px; background: #34495e; padding: 2px 6px; border-radius: 10px;">Работодатель</span>
+              {% elif current_user.user_type.value == 'recruiter' %}
+                <span style="font-size: 11px; background: #27ae60; padding: 2px 6px; border-radius: 10px;">Рекрутер</span>
+              {% elif current_user.user_type.value == 'admin' %}
+                <span style="font-size: 11px; background: #e74c3c; padding: 2px 6px; border-radius: 10px;">Администратор</span>
+              {% endif %}
+            </span>
+            <div style="position: relative; display: inline-block;">
+              <button style="background: #34495e; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer;" onclick="toggleDropdown()">
+                ⚙️
+              </button>
+              <div id="dropdown" style="display: none; position: absolute; right: 0; background: white; border: 1px solid #ddd; border-radius: 5px; padding: 10px; min-width: 150px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000;">
+                <a href="/profile" style="display: block; padding: 5px 0; color: #333; text-decoration: none;">👤 Профиль</a>
+                {% if current_user.user_type.value == 'admin' %}
+                  <a href="/admin" style="display: block; padding: 5px 0; color: #e74c3c; text-decoration: none;">🔧 Админ панель</a>
+                {% endif %}
+                <hr style="margin: 5px 0;">
+                <a href="/logout" style="display: block; padding: 5px 0; color: #e74c3c; text-decoration: none;">🚪 Выйти</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <a href="/register" style="color: white; text-decoration: none;">Регистрация</a>
+        <a href="/login" style="color: white; text-decoration: none; background: #3498db; padding: 8px 15px; border-radius: 5px;">🔒 Вход</a>
+      {% endif %}
+    </nav>
+  </header>
+  
+  <main style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+    {% block content %}{% endblock %}
+  </main>
+
+  <script>
+    function toggleDropdown() {
+      const dropdown = document.getElementById('dropdown');
+      dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+    
+    // Закрыть dropdown при клике вне его
+    window.onclick = function(event) {
+      if (!event.target.matches('button')) {
+        const dropdown = document.getElementById('dropdown');
+        if (dropdown && dropdown.style.display === 'block') {
+          dropdown.style.display = 'none';
+        }
+      }
+    }
+  </script>
+</body>
+</html>

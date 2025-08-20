@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>🔔 Уведомления</h2>
+  
+  <div style="margin-bottom: 20px;">
+    <form method="post" action="/notifications/read-all" style="display: inline;">
+      <button type="submit" style="background: #28a745; color: white; padding: 8px 15px; border: none; border-radius: 5px;">
+        ✓ Отметить все как прочитанные
+      </button>
+    </form>
+  </div>
+
+  {% if notifications %}
+    <div style="max-width: 800px;">
+      {% for notification in notifications %}
+        {% if not notification.is_read %}
+          <div style="border: 1px solid #007bff; border-radius: 8px; padding: 15px; margin-bottom: 10px; background-color: #f0f8ff;">
+        {% else %}
+          <div style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 10px; background-color: #f9f9f9;">
+        {% endif %}
+          
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+            <div>
+              <h4 style="margin: 0; color: #333;">
+                {% if not notification.is_read %}🔴{% else %}✅{% endif %}
+                {{ notification.title }}
+              </h4>
+              <small style="color: #666;">{{ notification.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+            </div>
+            
+            {% if not notification.is_read %}
+              <form method="post" action="/notifications/{{ notification.id }}/read" style="margin: 0;">
+                <button type="submit" style="background: #007bff; color: white; padding: 5px 10px; border: none; border-radius: 3px; font-size: 12px;">
+                  Прочитано
+                </button>
+              </form>
+            {% endif %}
+          </div>
+          
+          <p style="margin: 10px 0; color: #555;">{{ notification.message }}</p>
+          
+          <div style="border-top: 1px solid #ddd; padding-top: 10px;">
+            {% if notification.type == 'new_application' and notification.related_job_id %}
+              <a href="/my/jobs" style="background: #007bff; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+                Посмотреть отклики
+              </a>
+            {% elif notification.type == 'new_job' and notification.related_job_id %}
+              <a href="/jobs" style="background: #28a745; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+                Посмотреть вакансию
+              </a>
+            {% elif notification.type == 'new_message' and notification.related_user_id %}
+              <a href="/messages" style="background: #ffc107; color: #333; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+                Открыть сообщения
+              </a>
+            {% elif notification.type == 'new_rating' %}
+              <a href="/my/applications" style="background: #6f42c1; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+                Мои проекты
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="text-align: center; padding: 50px; color: #666;">
+      <h3>📭 Нет уведомлений</h3>
+      <p>Здесь будут появляться уведомления о новых откликах, вакансиях и сообщениях</p>
+    </div>
+  {% endif %}
+{% endblock %}

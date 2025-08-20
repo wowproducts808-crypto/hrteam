@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Профиль рекрутера: {{ recruiter.name }}</h2>
+  
+  {% if avg_rating %}
+    <p><strong>Средний рейтинг:</strong> {{ avg_rating }}/5.0 ({{ ratings_count }} оценок)</p>
+  {% else %}
+    <p>Пока нет оценок</p>
+  {% endif %}
+  
+  <h3>Отзывы:</h3>
+  {% for rating in ratings %}
+    <div>
+      <strong>{{ rating.rating }}/5</strong> — {{ rating.comment or "Без комментария" }}
+      <small>({{ rating.created_at.strftime('%d.%m.%Y') }})</small>
+    </div>
+    <hr>
+  {% else %}
+    <p>Нет отзывов</p>
+  {% endfor %}
+  
+  {% if current_user and current_user.user_type == 'employer' %}
+    <a href="/rate_recruiter/{{ recruiter.id }}">Оценить рекрутера</a>
+  {% endif %}
+{% endblock %}

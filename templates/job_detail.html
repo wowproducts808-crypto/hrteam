@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+  
+  <!-- Заголовок и навигация -->
+  <div style="margin-bottom: 20px;">
+    <a href="/jobs" style="color: #007bff; text-decoration: none; font-weight: 600;">← Назад к вакансиям</a>
+  </div>
+
+  <div style="background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden;">
+    
+    <!-- Заголовок вакансии -->
+    <div style="background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 35px;">
+      <div style="display: flex; justify-content: space-between; align-items: start;">
+        <div>
+          <h1 style="margin: 0 0 12px 0; font-size: 32px; font-weight: 700;">{{ job.title }}</h1>
+          <div style="font-size: 18px; opacity: 0.95;">
+            <span>🏢 {{ job.employer.name }}</span>
+            {% if job.location %}
+              <span style="margin-left: 25px;">📍 {{ job.location }}</span>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Расширенная информация о статусе -->
+        <div style="text-align: right;">
+          {% if job.status.value == 'open' %}
+            <span style="background: rgba(40,167,69,0.9); padding: 12px 20px; border-radius: 25px; font-size: 16px; font-weight: 600;">🟢 Открыта для откликов</span>
+          {% elif job.status.value == 'paused' %}
+            <span style="background: rgba(108,117,125,0.9); padding: 12px 20px; border-radius: 25px; font-size: 16px; font-weight: 600;">⏸️ Приостановлена</span>
+          {% elif job.status.value == 'in_progress' %}
+            <span style="background: rgba(255,193,7,0.9); color: #333; padding: 12px 20px; border-radius: 25px; font-size: 16px; font-weight: 600;">🟡 В процессе отбора</span>
+          {% elif job.status.value == 'completed' %}
+            <span style="background: rgba(220,53,69,0.9); padding: 12px 20px; border-radius: 25px; font-size: 16px; font-weight: 600;">🔴 Вакансия закрыта</span>
+          {% elif job.status.value == 'archived' %}
+            <span style="background: rgba(73,80,87,0.9); padding: 12px 20px; border-radius: 25px; font-size: 16px; font-weight: 600;">📁 Архивирована</span>
+          {% endif %}
+          
+          <!-- Причина статуса -->
+          {% if job.status_reason %}
+            <div style="margin-top: 8px; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 12px; font-size: 12px;">
+              {{ job.status_reason }}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div style="padding: 40px;">
+      
+      <!-- УПРОЩЕННАЯ СТАТИСТИКА ОТКЛИКОВ -->
+      <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-bottom: 35px; border-left: 4px solid #007bff;">
+        <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 20px;">📊 Информация по откликам</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 16px;">
+          <span style="color: #495057;">
+            <strong>👥 Получено откликов:</strong> {{ applications_count or 0 }} из {{ job.max_applications or 3 }}
+          </span>
+          {% if applications_left > 0 %}
+            <span style="color: #28a745; font-weight: 600;">
+              ✅ Доступно мест: {{ applications_left }}
+            </span>
+          {% else %}
+            <span style="color: #dc3545; font-weight: 600;">
+              🚫 Места заняты
+            </span>
+          {% endif %}
+        </div>
+        {% if job.avg_time_to_fill %}
+          <div style="margin-top: 10px; color: #6c757d; font-size: 14px;">
+            <strong>⏱️ Среднее время закрытия:</strong> {{ job.avg_time_to_fill }} дней
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Основная информация (расширенная сетка) -->
+      <div style="display: grid; grid-template-columns: 3fr 2fr; gap: 40px; margin-bottom: 35px;">
+        <div>
+          {% if job.short_description %}
+            <div style="background: #e8f4fd; padding: 25px; border-radius: 12px; margin-bottom: 30px; border-left: 5px solid #007bff;">
+              <p style="margin: 0; font-size: 18px; color: #2980b9; font-weight: 500; line-height: 1.6;">{{ job.short_description }}</p>
+            </div>
+          {% endif %}
+          
+          <h3 style="color: #2c3e50; margin-bottom: 25px; font-size: 24px;">📋 Описание вакансии</h3>
+          <div style="color: #495057; line-height: 1.8; margin-bottom: 35px; font-size: 16px;">
+            {{ job.description|replace('\n', '<br>')|safe }}
+          </div>
+        </div>
+        
+        <!-- Расширенная боковая информация -->
+        <div style="background: #f8f9fa; padding: 30px; border-radius: 12px; height: fit-content;">
+          <h4 style="margin-top: 0; color: #2c3e50; font-size: 20px;">💼 Условия работы</h4>
+          
+          <div style="margin-bottom: 25px;">
+            <strong style="color: #2c3e50; font-size: 16px;">💰 Вознаграждение:</strong><br>
+            <span style="font-size: 24px; color: #28a745; font-weight: bold;">
+              {{ "{:,}".format(job.salary_min) }} - {{ "{:,}".format(job.salary_max) }} {{ job.salary_currency or 'тенге' }}
+            </span>
+          </div>
+          
+          {% if job.employment_type %}
+            <div style="margin-bottom: 20px;">
+              <strong style="color: #2c3e50;">⏰ Тип занятости:</strong><br>
+              <span style="color: #495057;">{{ job.employment_type }}</span>
+            </div>
+          {% endif %}
+          
+          {% if job.experience_level %}
+            <div style="margin-bottom: 20px;">
+              <strong style="color: #2c3e50;">👨‍💻 Уровень опыта:</strong><br>
+              <span style="color: #495057;">{{ job.experience_level }}</span>
+            </div>
+          {% endif %}
+          
+          <div style="margin-bottom: 20px;">
+            <strong style="color: #2c3e50;">📅 Опубликована:</strong><br>
+            <span style="color: #495057;">{{ job.created_at.strftime('%d.%m.%Y в %H:%M') }}</span>
+          </div>
+          
+          <div style="margin-bottom: 20px;">
+            <strong style="color: #2c3e50;">👀 Просмотров:</strong><br>
+            <span style="color: #495057;">{{ job.views_count or 0 }}</span>
+          </div>
+          
+          {% if job.filled_at %}
+            <div style="margin-bottom: 20px;">
+              <strong style="color: #2c3e50;">🏁 Закрыта:</strong><br>
+              <span style="color: #495057;">{{ job.filled_at.strftime('%d.%m.%Y в %H:%M') }}</span>
+            </div>
+          {% endif %}
+          
+          <!-- ОБНОВЛЕННЫЕ КНОПКИ ДЕЙСТВИЙ -->
+          <div style="margin-top: 30px;">
+            {% if current_user and current_user.user_type.value == 'recruiter' %}
+              {% if user_applied %}
+                <div style="background: #d4edda; color: #155724; padding: 18px; text-align: center; border-radius: 10px; margin-bottom: 15px; font-weight: 600; font-size: 16px;">
+                  ✅ Вы уже откликнулись
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; color: #6c757d; font-size: 14px;">
+                  Ожидайте ответа от работодателя
+                </div>
+              {% elif job.status.value == 'paused' %}
+                <div style="background: #fff3cd; color: #856404; padding: 18px; text-align: center; border-radius: 10px; margin-bottom: 15px; font-weight: 600; font-size: 16px;">
+                  ⏸️ Вакансия приостановлена
+                </div>
+              {% elif job.status.value in ['completed', 'archived'] %}
+                <div style="background: #f8d7da; color: #721c24; padding: 18px; text-align: center; border-radius: 10px; margin-bottom: 15px; font-weight: 600; font-size: 16px;">
+                  🔒 Вакансия закрыта
+                </div>
+              {% elif not can_apply %}
+                {% if applications_left == 0 %}
+                  <div style="background: #f8d7da; color: #721c24; padding: 18px; text-align: center; border-radius: 10px; margin-bottom: 15px; font-weight: 600; font-size: 16px;">
+                    🚫 Все места заняты
+                  </div>
+                {% else %}
+                  <div style="background: #fff3cd; color: #856404; padding: 18px; text-align: center; border-radius: 10px; margin-bottom: 15px; font-weight: 600; font-size: 16px;">
+                    ⚠️ Отклик недоступен
+                  </div>
+                {% endif %}
+              {% else %}
+                <a href="/jobs/{{ job.id }}/apply" style="display: block; background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 18px; text-align: center; border-radius: 10px; text-decoration: none; font-weight: bold; margin-bottom: 15px; transition: all 0.3s; font-size: 16px;">
+                  ✋ Откликнуться на вакансию
+                </a>
+                {% if applications_left > 0 %}
+                  <div style="background: #e8f5e8; padding: 12px; border-radius: 8px; text-align: center; color: #28a745; font-size: 13px; font-weight: 600;">
+                    🔥 Осталось {{ applications_left }} {% if applications_left == 1 %}место{% else %}места{% endif %}!
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% elif not current_user %}
+              <div style="background: #e8f4fd; padding: 18px; text-align: center; border-radius: 10px; margin-bottom: 15px;">
+                <div style="color: #2980b9; font-weight: 600; margin-bottom: 10px;">Хотите откликнуться?</div>
+                <a href="/login" style="background: #007bff; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                  🔐 Войдите в систему
+                </a>
+              </div>
+            {% endif %}
+            
+            <!-- Кнопка связи всегда доступна -->
+            {% if current_user %}
+              <a href="/messages/to/{{ job.employer.id }}" style="display: block; background: #007bff; color: white; padding: 15px; text-align: center; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background 0.3s; margin-top: 15px;">
+                💬 Связаться с работодателем
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Требования -->
+      {% if job.requirements %}
+        <div style="margin-bottom: 35px;">
+          <h3 style="color: #2c3e50; margin-bottom: 25px; font-size: 24px;">✅ Требования к рекрутеру</h3>
+          <div style="background: #fff3cd; padding: 25px; border-radius: 12px; border-left: 5px solid #ffc107;">
+            <div style="color: #856404; line-height: 1.8; font-size: 16px;">
+              {{ job.requirements|replace('\n', '<br>')|safe }}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Что предлагаем -->
+      {% if job.benefits %}
+        <div style="margin-bottom: 35px;">
+          <h3 style="color: #2c3e50; margin-bottom: 25px; font-size: 24px;">🎁 Что предлагаем</h3>
+          <div style="background: #d4edda; padding: 25px; border-radius: 12px; border-left: 5px solid #28a745;">
+            <div style="color: #155724; line-height: 1.8; font-size: 16px;">
+              {{ job.benefits|replace('\n', '<br>')|safe }}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Информация о работодателе -->
+      <div style="border-top: 3px solid #e9ecef; padding-top: 30px;">
+        <h3 style="color: #2c3e50; margin-bottom: 25px; font-size: 24px;">🏢 О работодателе</h3>
+        <div style="display: flex; align-items: center; gap: 25px; background: linear-gradient(135deg, #f8f9fa, #e9ecef); padding: 25px; border-radius: 12px;">
+          <div style="flex: 1;">
+            <strong style="font-size: 20px; color: #2c3e50;">{{ job.employer.name }}</strong>
+            {% if job.employer.company %}
+              <div style="color: #6c757d; margin-top: 8px; font-size: 16px;">{{ job.employer.company }}</div>
+            {% endif %}
+            {% if job.employer.location %}
+              <div style="color: #6c757d; margin-top: 5px; font-size: 14px;">📍 {{ job.employer.location }}</div>
+            {% endif %}
+            {% if job.employer.experience %}
+              <div style="color: #6c757d; margin-top: 8px; font-size: 14px;">
+                <strong>Опыт работы:</strong> {{ job.employer.experience[:100] }}{% if job.employer.experience|length > 100 %}...{% endif %}
+              </div>
+            {% endif %}
+          </div>
+          <div>
+            <a href="/recruiter/{{ job.employer.id }}" style="background: #007bff; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+              👤 Профиль
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Всплывающие уведомления
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('applied') === 'success') {
+  showNotification('success', '✅ Отклик отправлен!', 'Ваш отклик получен работодателем.');
+} else if (urlParams.get('error') === 'max_applications') {
+  showNotification('error', '🚫 Места закончились!', 'Достигнут максимум откликов на эту вакансию.');
+} else if (urlParams.get('error') === 'job_not_open') {
+  showNotification('warning', '⏸️ Вакансия недоступна', 'Эта вакансия закрыта для новых откликов.');
+}
+
+function showNotification(type, title, message) {
+  const colors = {
+    success: { bg: '#d4edda', border: '#c3e6cb', text: '#155724' },
+    error: { bg: '#f8d7da', border: '#f5c6cb', text: '#721c24' },
+    warning: { bg: '#fff3cd', border: '#ffeaa7', text: '#856404' }
+  };
+  
+  const notification = document.createElement('div');
+  notification.innerHTML = `
+    <div style="position: fixed; top: 20px; right: 20px; background: ${colors[type].bg}; color: ${colors[type].text}; padding: 20px; border-radius: 10px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); max-width: 400px; z-index: 1000; animation: slideIn 0.3s ease;">
+      <div style="font-weight: bold; margin-bottom: 5px;">${title}</div>
+      <div style="font-size: 14px;">${message}</div>
+    </div>
+  `;
+  document.body.appendChild(notification);
+  setTimeout(() => notification.remove(), 5000);
+}
+</script>
+
+<style>
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+</style>
+
+{% endblock %}

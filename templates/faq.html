@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="max-width: 1000px; margin: 0 auto;">
+  
+  <!-- Заголовок страницы -->
+  <div style="text-align: center; margin-bottom: 40px;">
+    <h1 style="color: #2c3e50; margin-bottom: 10px;">❓ Часто задаваемые вопросы</h1>
+    <p style="color: #6c757d; font-size: 18px; max-width: 600px; margin: 0 auto;">
+      Здесь вы найдете ответы на самые популярные вопросы о работе платформы HRspace в Казахстане
+    </p>
+  </div>
+
+  <!-- Поиск по FAQ -->
+  <div style="margin-bottom: 40px;">
+    <div style="position: relative; max-width: 500px; margin: 0 auto;">
+      <input 
+        type="text" 
+        id="faqSearch" 
+        placeholder="🔍 Поиск по вопросам..." 
+        style="width: 100%; padding: 15px 20px; border: 2px solid #e9ecef; border-radius: 25px; font-size: 16px; outline: none; transition: border-color 0.3s;"
+        onkeyup="searchFAQ()"
+        onfocus="this.style.borderColor='#3498db'"
+        onblur="this.style.borderColor='#e9ecef'"
+      >
+    </div>
+  </div>
+
+  <!-- Категории FAQ -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+    
+    <!-- Общие вопросы -->
+    <div class="faq-category" style="background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 20px;">
+        <h3 style="margin: 0; font-size: 20px;">🌟 Общие вопросы</h3>
+        <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 14px;">Основная информация о платформе</p>
+      </div>
+      <div style="padding: 20px;">
+        
+        <div class="faq-item" style="margin-bottom: 15px; border-bottom: 1px solid #f1f2f6; padding-bottom: 15px;">
+          <div class="faq-question" style="cursor: pointer; font-weight: 600; color: #2c3e50; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAnswer(this)">
+            <span>Что такое HRspace?</span>
+            <span class="faq-arrow" style="transition: transform 0.3s;">▼</span>
+          </div>
+          <div class="faq-answer" style="display: none; color: #6c757d; line-height: 1.6; padding: 10px 0;">
+            HRspace — это HR-платформа для Казахстана, которая соединяет работодателей и рекрутеров. Мы помогаем компаниям находить квалифицированных специалистов по подбору персонала, а рекрутерам — получать новые проекты и развивать карьеру.
+          </div>
+        </div>
+
+        <div class="faq-item" style="margin-bottom: 15px; border-bottom: 1px solid #f1f2f6; padding-bottom: 15px;">
+          <div class="faq-question" style="cursor: pointer; font-weight: 600; color: #2c3e50; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAnswer(this)">
+            <span>Как работает платформа?</span>
+            <span class="faq-arrow" style="transition: transform 0.3s;">▼</span>
+          </div>
+          <div class="faq-answer" style="display: none; color: #6c757d; line-height: 1.6; padding: 10px 0;">
+            Работодатели размещают вакансии с требованиями и бюджетом в тенге. Рекрутеры изучают проекты и подают заявки. После выбора исполнителя начинается работа по подбору персонала. Вся коммуникация происходит через платформу.
+          </div>
+        </div>
+
+        <div class="faq-item" style="margin-bottom: 15px; border-bottom: 1px solid #f1f2f6; padding-bottom: 15px;">
+          <div class="faq-question" style="cursor: pointer; font-weight: 600; color: #2c3e50; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAnswer(this)">
+            <span>В каких городах работает HRspace?</span>
+            <span class="faq-arrow" style="transition: transform 0.3s;">▼</span>
+          </div>
+          <div class="faq-answer" style="display: none; color: #6c757d; line-height: 1.6; padding: 10px 0;">
+            HRspace работает по всему Казахстану: Алматы, Астана, Шымкент, Караганда, Актобе, Тараз и другие города. Также поддерживаем удаленную работу для проектов, не требующих географической привязки.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Для работодателей -->
+    <div class="faq-category" style="background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; padding: 20px;">
+        <h3 style="margin: 0; font-size: 20px;">🏢 Для работодателей</h3>
+        <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 14px;">Размещение вакансий и работа с рекрутерами</p>
+      </div>
+      <div style="padding: 20px;">
+        
+        <div class="faq-item" style="margin-bottom: 15px; border-bottom: 1px solid #f1f2f6; padding-bottom: 15px;">
+          <div class="faq-question" style="cursor: pointer; font-weight: 600; color: #2c3e50; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAnswer(this)">
+            <span>Сколько стоит размещение вакансии?</span>
+            <span class="faq-arrow" style="transition: transform 0.3s;">▼</span>
+          </div>
+          <div class="faq-answer" style="display: none; color: #6c757d; line-height: 1.6; padding: 10px 0;">
+            Размещение вакансий на HRspace абсолютно бесплатно. Вы платите только за результат — когда рекрутер успешно закрывает вашу позицию. Тарифы обсуждаются индивидуально с каждым рекрутером.
+          </div>
+        </div>
+
+        <div class="faq-item" style="margin-bottom: 15px; border-bottom: 1px solid #f1f2f6; padding-bottom: 15px;">
+          <div class="faq-question" style="cursor: pointer; font-weight: 600; color: #2c3e50; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAnswer(this)">
+            <span>Как выбрать рекрутера?</span>
+            <span class="faq-arrow" style="transition: transform 0.3s;">▼</span>
+          </div>
+          <div class="faq-answer" style="display: none; color: #6c757d; line-height: 1.6; padding: 10px 0;">
+            При выборе рекрутера обращайте внимание на рейтинг, отзывы предыдущих клиентов, специализацию и опыт работы в вашей сфере. В профиле каждого рекрутера указаны завершенные проекты и средняя оценка.
+          </div>
+        </div>
+
+        <div class="faq-item" style="margin-bottom: 15px; border-bottom: 1px solid #f1f2f6; padding-bottom: 15px;">
+          <div class="faq-question" style="cursor: pointer; font-weight: 600; color: #2c3e50; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAnswer(this)">
+            <span>Какие гарантии предоставляет платформа?</span>
+            <span class="faq-arrow" style="transition: transform 0.3s;">▼</span>
+          </div>
+          <div class="faq-answer" style="display: none; color: #6c757d; line-height: 1.6; padding: 10px 0;">
+            Мы предоставляем гарантию замены кандидата в течение 3 месяцев, если новый сотрудник не прошел испытательный срок по профессиональным причинам. Все рекрутеры проходят верификацию и имеют подтвержденный опыт.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Для рекрутеров -->
+    <div class="faq-category" style="background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #27ae60, #229954); color: white; padding: 20px;">
+        <h3 style="margin: 0; font-size: 20px;">🎯 Для рекрутеров</h3>
+        <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 14px;">Поиск проектов и развитие карьеры</p>
+      </div>
+      <div style="padding: 20px;">
+        
+        <div class="faq-item" style="margin-bottom: 15px; border-bottom: 1px solid #f1f2f6; padding-bottom: 15px;">
+          <div class="faq-question" style="cursor: pointer; font-weight: 600; color: #2c3e50; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAnswer(this)">
+            <span>Как стать рекрутером на платформе?</span>
+            <span class="faq-arrow" style="transition: transform 0.3s;">▼</span>
+          </div>
+          <div class="faq-answer" style="display: none; color: #6c757d; line-height: 1.6; padding: 10px 0;">
+            Зарегистрируйтесь как рекрутер, заполните профиль с указанием опыта и специализации, загрузите портфолио. После модерации вы сможете откликаться на проекты. Требуется опыт работы в HR от 6 месяцев.
+          </div>
+        </div>
+
+        <div class="faq-item" style="margin-bottom: 15px; border-bottom: 1px solid #f1f2f6; padding-bottom: 15px;">
+          <div class="faq-question" style="cursor: pointer; font-weight: 600; color: #2c3e50; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAnswer(this)">
+            <span>Сколько можно заработать?</span>
+            <span class="faq-arrow" style="transition: transform 0.3s;">▼</span>
+          </div>
+          <div class="faq-answer" style="display: none; color: #6c757d; line-height: 1.6; padding: 10px 0;">
+            Доходы зависят от уровня позиций и количества закрытых вакансий. В среднем, рекрутеры зарабатывают от 200,000 до 1,500,000 тенге в месяц. Опытные специалисты с высоким рейтингом получают более сложные и высокооплачиваемые проекты.
+          </div>
+        </div>
+
+        <div class="faq-item" style="margin-bottom: 15px; border-bottom: 1px solid #f1f2f6; padding-bottom: 15px;">
+          <div class="faq-question" style="cursor: pointer; font-weight: 600; color: #2c3e50; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAnswer(this)">
+            <span>Как повысить рейтинг?</span>
+            <span class="faq-arrow" style="transition: transform 0.3s;">▼</span>
+          </div>
+          <div class="faq-answer" style="display: none; color: #6c757d; line-height: 1.6; padding: 10px 0;">
+            Рейтинг повышается за счет качественно выполненных проектов, соблюдения сроков, позитивных отзывов клиентов и активности на платформе. Также важно поддерживать актуальный профиль и быстро отвечать на сообщения.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Оплата и финансы -->
+    <div class="faq-category" style="background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white; padding: 20px;">
+        <h3 style="margin: 0; font-size: 20px;">💰 Оплата и финансы</h3>
+        <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 14px;">Расчеты, тенге, налоги</p>
+      </div>
+      <div style="padding: 20px;">
+        
+        <div class="faq-item" style="margin-bottom: 15px; border-bottom: 1px solid #f1f2f6; padding-bottom: 15px;">
+          <div class="faq-question" style="cursor: pointer; font-weight: 600; color: #2c3e50; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAnswer(this)">
+            <span>В какой валюте происходят расчеты?</span>
+            <span class="faq-arrow" style="transition: transform 0.3s;">▼</span>
+          </div>
+          <div class="faq-answer" style="display: none; color: #6c757d; line-height: 1.6; padding: 10px 0;">
+            Все расчеты на платформе HRspace происходят в казахстанских тенге. Это удобно для местных компаний и соответствует требованиям валютного законодательства РК.
+          </div>
+        </div>
+
+        <div class="faq-item" style="margin-bottom: 15px; border-bottom: 1px solid #f1f2f6; padding-bottom: 15px;">
+          <div class="faq-question" style="cursor: pointer; font-weight: 600; color: #2c3e50; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAnswer(this)">
+            <span>Как происходит оплата услуг рекрутера?</span>
+            <span class="faq-arrow" style="transition: transform 0.3s;">▼</span>
+          </div>
+          <div class="faq-answer" style="display: none; color: #6c757d; line-height: 1.6; padding: 10px 0;">
+            Оплата производится поэтапно: 30% предоплата при начале работы, 70% после успешного выхода кандидата на работу. Платформа выступает гарантом сделки. Поддерживаются банковские переводы и Kaspi.
+          </div>
+        </div>
+
+        <div class="faq-item" style="margin-bottom: 15px; border-bottom: 1px solid #f1f2f6; padding-bottom: 15px;">
+          <div class="faq-question" style="cursor: pointer; font-weight: 600; color: #2c3e50; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAnswer(this)">
+            <span>Нужно ли платить налоги?</span>
+            <span class="faq-arrow" style="transition: transform 0.3s;">▼</span>
+          </div>
+          <div class="faq-answer" style="display: none; color: #6c757d; line-height: 1.6; padding: 10px 0;">
+            Да, доходы от рекрутинговой деятельности подлежат налогообложению согласно законодательству РК. Рекомендуем оформить статус ИП или работать через ТОО для оптимизации налогов.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Техническая поддержка -->
+    <div class="faq-category" style="background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white; padding: 20px;">
+        <h3 style="margin: 0; font-size: 20px;">🔧 Техническая поддержка</h3>
+        <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 14px;">Решение технических проблем</p>
+      </div>
+      <div style="padding: 20px;">
+        
+        <div class="faq-item" style="margin-bottom: 15px; border-bottom: 1px solid #f1f2f6; padding-bottom: 15px;">
+          <div class="faq-question" style="cursor: pointer; font-weight: 600; color: #2c3e50; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAnswer(this)">
+            <span>Как связаться с поддержкой?</span>
+            <span class="faq-arrow" style="transition: transform 0.3s;">▼</span>
+          </div>
+          <div class="faq-answer" style="display: none; color: #6c757d; line-height: 1.6; padding: 10px 0;">
+            Техподдержка доступна 24/7 через чат на сайте, email support@hrspace.kz, WhatsApp +7 (777) 123-45-67. Среднее время ответа — 15 минут в рабочие часы, до 2 часов в выходные.
+          </div>
+        </div>
+
+        <div class="faq-item" style="margin-bottom: 15px; border-bottom: 1px solid #f1f2f6; padding-bottom: 15px;">
+          <div class="faq-question" style="cursor: pointer; font-weight: 600; color: #2c3e50; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAnswer(this)">
+            <span>Не могу войти в аккаунт</span>
+            <span class="faq-arrow" style="transition: transform 0.3s;">▼</span>
+          </div>
+          <div class="faq-answer" style="display: none; color: #6c757d; line-height: 1.6; padding: 10px 0;">
+            Попробуйте восстановить пароль через ссылку "Забыли пароль?" на странице входа. Проверьте правильность email. Если проблема не решилась, обратитесь в поддержку с указанием вашего email.
+          </div>
+        </div>
+
+        <div class="faq-item" style="margin-bottom: 15px; border-bottom: 1px solid #f1f2f6; padding-bottom: 15px;">
+          <div class="faq-question" style="cursor: pointer; font-weight: 600; color: #2c3e50; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAnswer(this)">
+            <span>Как изменить данные профиля?</span>
+            <span class="faq-arrow" style="transition: transform 0.3s;">▼</span>
+          </div>
+          <div class="faq-answer" style="display: none; color: #6c757d; line-height: 1.6; padding: 10px 0;">
+            Зайдите в раздел "Профиль" через меню настроек (⚙️). Там вы можете обновить контактные данные, специализацию, опыт работы и другую информацию. Изменения сохраняются автоматически.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Безопасность -->
+    <div class="faq-category" style="background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #34495e, #2c3e50); color: white; padding: 20px;">
+        <h3 style="margin: 0; font-size: 20px;">🔒 Безопасность</h3>
+        <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 14px;">Защита данных и конфиденциальность</p>
+      </div>
+      <div style="padding: 20px;">
+        
+        <div class="faq-item" style="margin-bottom: 15px; border-bottom: 1px solid #f1f2f6; padding-bottom: 15px;">
+          <div class="faq-question" style="cursor: pointer; font-weight: 600; color: #2c3e50; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAnswer(this)">
+            <span>Безопасно ли размещать данные компании?</span>
+            <span class="faq-arrow" style="transition: transform 0.3s;">▼</span>
+          </div>
+          <div class="faq-answer" style="display: none; color: #6c757d; line-height: 1.6; padding: 10px 0;">
+            Да, мы используем SSL-шифрование и соблюдаем требования закона РК "О персональных данных". Все рекрутеры подписывают соглашение о неразглашении. Данные хранятся на серверах в Казахстане.
+          </div>
+        </div>
+
+        <div class="faq-item" style="margin-bottom: 15px; border-bottom: 1px solid #f1f2f6; padding-bottom: 15px;">
+          <div class="faq-question" style="cursor: pointer; font-weight: 600; color: #2c3e50; padding: 10px 0; display: flex; justify-content: space-between; align-items: center;" onclick="toggleAnswer(this)">
+            <span>Как проверяется подлинность рекрутеров?</span>
+            <span class="faq-arrow" style="transition: transform 0.3s;">▼</span>
+          </div>
+          <div class="faq-answer" style="display: none; color: #6c757d; line-height: 1.6; padding: 10px 0;">
+            Все рекрутеры проходят верификацию: проверяем документы, опыт работы, связываемся с прежними работодателями. Система рейтингов и отзывов помогает дополнительно оценить надежность специалиста.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Блок "Не нашли ответ?" -->
+  <div style="margin-top: 50px; text-align: center; background: linear-gradient(135deg, #f8f9fa, #e9ecef); padding: 40px; border-radius: 12px;">
+    <h3 style="color: #2c3e50; margin-bottom: 15px;">Не нашли ответ на свой вопрос?</h3>
+    <p style="color: #6c757d; margin-bottom: 25px; font-size: 16px;">
+      Наша команда поддержки готова помочь вам в любое время
+    </p>
+    <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+      <a href="/messages" style="background: #3498db; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+        💬 Написать в поддержку
+      </a>
+      <a href="mailto:support@hrspace.kz" style="background: #27ae60; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+        📧 Email: support@hrspace.kz
+      </a>
+      <a href="tel:+77771234567" style="background: #e74c3c; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+        📞 +7 (777) 123-45-67
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Функция поиска по FAQ
+function searchFAQ() {
+  const searchTerm = document.getElementById('faqSearch').value.toLowerCase();
+  const faqItems = document.querySelectorAll('.faq-item');
+  const faqCategories = document.querySelectorAll('.faq-category');
+  
+  faqCategories.forEach(category => {
+    let hasVisibleItems = false;
+    const items = category.querySelectorAll('.faq-item');
+    
+    items.forEach(item => {
+      const question = item.querySelector('.faq-question span').textContent.toLowerCase();
+      const answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+      
+      if (question.includes(searchTerm) || answer.includes(searchTerm) || searchTerm === '') {
+        item.style.display = 'block';
+        hasVisibleItems = true;
+      } else {
+        item.style.display = 'none';
+      }
+    });
+    
+    // Показать/скрыть категорию в зависимости от наличия видимых элементов
+    category.style.display = hasVisibleItems ? 'block' : 'none';
+  });
+}
+
+// Функция для раскрытия/скрытия ответов
+function toggleAnswer(questionElement) {
+  const answer = questionElement.nextElementSibling;
+  const arrow = questionElement.querySelector('.faq-arrow');
+  
+  if (answer.style.display === 'none' || answer.style.display === '') {
+    answer.style.display = 'block';
+    arrow.style.transform = 'rotate(180deg)';
+  } else {
+    answer.style.display = 'none';
+    arrow.style.transform = 'rotate(0deg)';
+  }
+}
+
+// Анимация появления при скролле
+window.addEventListener('scroll', () => {
+  const faqCategories = document.querySelectorAll('.faq-category');
+  
+  faqCategories.forEach(category => {
+    const rect = category.getBoundingClientRect();
+    const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+    
+    if (isVisible) {
+      category.style.opacity = '1';
+      category.style.transform = 'translateY(0)';
+    }
+  });
+});
+
+// Инициализация анимации
+document.addEventListener('DOMContentLoaded', () => {
+  const faqCategories = document.querySelectorAll('.faq-category');
+  faqCategories.forEach((category, index) => {
+    category.style.opacity = '0';
+    category.style.transform = 'translateY(20px)';
+    category.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+  });
+  
+  // Запускаем проверку видимости
+  window.dispatchEvent(new Event('scroll'));
+});
+</script>
+
+{% endblock %}

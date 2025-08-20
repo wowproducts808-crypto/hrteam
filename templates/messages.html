@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Мои сообщения</h2>
+  
+  <h3>Отправить новое сообщение</h3>
+  <form method="post" action="/messages/send">
+    <label>Получатель:<br>
+      <select name="receiver_id" required>
+        <option value="">Выберите получателя</option>
+        {% for user in users %}
+          <option value="{{ user.id }}">{{ user.name }} ({{ user.user_type.value }})</option>
+        {% endfor %}
+      </select>
+    </label><br><br>
+    <label>Сообщение:<br>
+      <textarea name="content" rows="4" cols="50" required></textarea>
+    </label><br><br>
+    <button type="submit">Отправить</button>
+  </form>
+  
+  <hr>
+  
+  <h3>Полученные сообщения</h3>
+  {% if messages_received %}
+    <ul>
+      {% for msg in messages_received %}
+        <li>
+          <strong>От {{ msg.sender.name }}:</strong> {{ msg.content }}
+          <small>({{ msg.created_at.strftime('%d.%m.%Y %H:%M') }})</small>
+          <a href="/messages/to/{{ msg.sender.id }}">Ответить</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Нет сообщений</p>
+  {% endif %}
+  
+  <h3>Отправленные сообщения</h3>
+  {% if messages_sent %}
+    <ul>
+      {% for msg in messages_sent %}
+        <li>
+          <strong>К {{ msg.receiver.name }}:</strong> {{ msg.content }}
+          <small>({{ msg.created_at.strftime('%d.%m.%Y %H:%M') }})</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Нет отправленных сообщений</p>
+  {% endif %}
+{% endblock %}

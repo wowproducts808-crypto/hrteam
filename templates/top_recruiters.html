@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>🏆 Топ-10 лучших рекрутеров</h2>
+  <p>Рейтинг основан на оценках работодателей</p>
+  
+  <!-- Отладочная информация -->
+  <p><small>Найдено рекрутеров с рейтингом: {{ top_recruiters|length }}</small></p>
+  
+  {% if top_recruiters %}
+    <div style="max-width: 800px;">
+      {% for data in top_recruiters %}
+        {% if loop.index <= 3 %}
+          <div style="border: 2px solid #ddd; border-radius: 10px; padding: 20px; margin-bottom: 15px; background-color: #fff9c4;">
+        {% else %}
+          <div style="border: 2px solid #ddd; border-radius: 10px; padding: 20px; margin-bottom: 15px; background-color: #f9f9f9;">
+        {% endif %}
+          
+          <!-- Место и медали -->
+          <div style="display: flex; align-items: center; margin-bottom: 10px;">
+            <div style="font-size: 24px; margin-right: 15px; font-weight: bold;">
+              {% if loop.index == 1 %}🥇
+              {% elif loop.index == 2 %}🥈
+              {% elif loop.index == 3 %}🥉
+              {% else %}
+                <span style="background: #666; color: white; padding: 5px 10px; border-radius: 50%;">{{ loop.index }}</span>
+              {% endif %}
+            </div>
+            
+            <div style="flex-grow: 1;">
+              <h3 style="margin: 0; color: #333;">{{ data.recruiter.name }}</h3>
+              {% if loop.index <= 3 %}
+                <span style="color: #d4af37; font-weight: bold;">⭐ ТОП РЕКРУТЕР</span>
+              {% endif %}
+            </div>
+            
+            <!-- Рейтинг справа -->
+            <div style="text-align: right;">
+              <div style="font-size: 28px; color: #ff6b35; font-weight: bold;">
+                {{ data.avg_rating }}/5.0
+              </div>
+              <div style="color: #666;">{{ data.ratings_count }} оценок</div>
+            </div>
+          </div>
+          
+          <!-- Статистика -->
+          <div style="display: flex; gap: 30px; margin-bottom: 15px; color: #555;">
+            <div>
+              <strong>📊 Проектов выполнено:</strong> {{ data.completed_projects }}
+            </div>
+            <div>
+              <strong>⭐ Средний балл:</strong> {{ data.avg_rating }}
+            </div>
+          </div>
+          
+          <!-- Действия -->
+          <div style="border-top: 1px solid #ddd; padding-top: 10px;">
+            <a href="/recruiter/{{ data.recruiter.id }}" 
+               style="background: #007bff; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; margin-right: 10px;">
+               👤 Профиль
+            </a>
+            
+            {% if current_user and current_user.user_type == 'employer' %}
+              <a href="/messages/to/{{ data.recruiter.id }}" 
+                 style="background: #28a745; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; margin-right: 10px;">
+                 💬 Написать
+              </a>
+              <a href="/rate_recruiter/{{ data.recruiter.id }}" 
+                 style="background: #ffc107; color: #333; padding: 8px 15px; text-decoration: none; border-radius: 5px;">
+                 ⭐ Оценить
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="text-align: center; padding: 50px; color: #666;">
+      <h3>🤷‍♂️ Пока нет рекрутеров с оценками</h3>
+      <p>Станьте первым работодателем, который оценит рекрутера!</p>
+    </div>
+  {% endif %}
+  
+  <br>
+  <p style="text-align: center; color: #888;">
+    <small>💡 Рейтинг обновляется в реальном времени на основе отзывов работодателей</small>
+  </p>
+{% endblock %}

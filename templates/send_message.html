@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Сообщение для {{ recipient.name }}</h2>
+  
+  <form method="post" action="/messages/send">
+    <input type="hidden" name="receiver_id" value="{{ recipient.id }}">
+    <label>Сообщение:<br>
+      <textarea name="content" rows="6" cols="60" required placeholder="Введите ваше сообщение..."></textarea>
+    </label><br><br>
+    <button type="submit">Отправить сообщение</button>
+    <a href="/messages">Отмена</a>
+  </form>
+{% endblock %}

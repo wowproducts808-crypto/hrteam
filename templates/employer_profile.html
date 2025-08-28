@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="container" style="max-width: 900px;">
+    <h2>👔 Профиль работодателя: {{ current_user.name }}</h2>
+    
+    <!-- Информация о компании -->
+    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px;">
+      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+        <div>
+          {% if current_user.company_name %}
+            <h3 style="margin: 0 0 10px 0; color: #007bff;">🏢 {{ current_user.company_name }}</h3>
+          {% endif %}
+          <div style="color: #6c757d; font-size: 16px;">
+            {% if current_user.location %}
+              📍 {{ current_user.location }}
+            {% endif %}
+            {% if current_user.phone %}
+              <span style="margin-left: 15px;">📞 {{ current_user.phone }}</span>
+            {% endif %}
+          </div>
+        </div>
+        <div style="text-align: right;">
+          <small style="color: #adb5bd;">Зарегистрирован {{ current_user.created_at.strftime('%d.%m.%Y') }}</small>
+        </div>
+      </div>
+
+      {% if current_user.company_description %}
+        <div style="margin-bottom: 20px;">
+          <h4 style="color: #2c3e50;">📋 О компании</h4>
+          <p style="color: #495057; line-height: 1.6;">{{ current_user.company_description }}</p>
+        </div>
+      {% endif %}
+
+      {% if current_user.company_website %}
+        <div style="margin-bottom: 20px;">
+          <h4 style="color: #2c3e50;">🌐 Сайт и контакты</h4>
+          <a href="{{ current_user.company_website }}" target="_blank" style="color: #007bff; text-decoration: none;">
+            {{ current_user.company_website }}
+          </a>
+        </div>
+      {% endif %}
+
+      {% if current_user.company_details %}
+        <div style="margin-bottom: 20px;">
+          <h4 style="color: #2c3e50;">📄 Реквизиты компании</h4>
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; font-family: monospace; white-space: pre-wrap;">{{ current_user.company_details }}</div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Рейтинг и отзывы -->
+    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px;">
+      <h3 style="color: #2c3e50; margin-bottom: 20px;">⭐ Рейтинг работодателя</h3>
+      
+      {% if avg_rating %}
+        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px;">
+          <div style="text-align: center;">
+            <div style="font-size: 48px; font-weight: bold; color: #ffc107;">{{ "%.1f"|format(avg_rating) }}</div>
+            <div style="color: #6c757d;">из 5.0</div>
+          </div>
+          <div>
+            <div style="color: #495057; font-size: 18px; margin-bottom: 5px;">
+              Основано на {{ ratings_count }} {% if ratings_count == 1 %}оценке{% elif ratings_count < 5 %}оценках{% else %}оценках{% endif %}
+            </div>
+            <div style="display: flex; align-items: center;">
+              {% for i in range(5) %}
+                {% if i < avg_rating %}
+                  <span style="color: #ffc107; font-size: 20px;">★</span>
+                {% else %}
+                  <span style="color: #e9ecef; font-size: 20px;">★</span>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; color: #6c757d;">
+          <div style="font-size: 48px; margin-bottom: 10px;">🌟</div>
+          <p style="margin: 0;">Пока нет оценок от рекрутеров</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Отзывы -->
+    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px;">
+      <h3 style="color: #2c3e50; margin-bottom: 20px;">💬 Отзывы рекрутеров</h3>
+      
+      {% for rating in ratings %}
+        <div style="border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <strong style="color: #2c3e50;">{{ rating.recruiter.name }}</strong>
+                <div style="display: flex; align-items: center;">
+                  {% for i in range(5) %}
+                    {% if i < rating.overall_rating %}
+                      <span style="color: #ffc107;">★</span>
+                    {% else %}
+                      <span style="color: #e9ecef;">★</span>
+                    {% endif %}
+                  {% endfor %}
+                  <span style="margin-left: 8px; font-weight: bold; color: #495057;">{{ rating.overall_rating }}/5</span>
+                </div>
+              </div>
+              {% if rating.job %}
+                <small style="color: #6c757d;">По проекту: {{ rating.job.title }}</small>
+              {% endif %}
+            </div>
+            <small style="color: #adb5bd;">{{ rating.created_at.strftime('%d.%m.%Y') }}</small>
+          </div>
+
+          {% if rating.comment %}
+            <div style="color: #495057; line-height: 1.6; margin-bottom: 15px;">
+              "{{ rating.comment }}"
+            </div>
+          {% endif %}
+
+          {% if rating.pros or rating.cons %}
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+              {% if rating.pros %}
+                <div style="background: #d4f0d4; padding: 10px; border-radius: 6px;">
+                  <strong style="color: #155724;">✅ Плюсы:</strong>
+                  <div style="color: #155724; font-size: 14px;">{{ rating.pros }}</div>
+                </div>
+              {% endif %}
+              {% if rating.cons %}
+                <div style="background: #f8d7da; padding: 10px; border-radius: 6px;">
+                  <strong style="color: #721c24;">❌ Минусы:</strong>
+                  <div style="color: #721c24; font-size: 14px;">{{ rating.cons }}</div>
+                </div>
+              {% endif %}
+            </div>
+          {% endif %}
+
+          {% if rating.would_hire_again is not none or rating.would_recommend is not none %}
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e9ecef;">
+              {% if rating.would_hire_again %}
+                <span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-right: 10px;">
+                  🔄 Готов сотрудничать снова
+                </span>
+              {% endif %}
+              {% if rating.would_recommend %}
+                <span style="background: #cce5ff; color: #004085; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                  👍 Рекомендует другим
+                </span>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+      {% else %}
+        <div style="background: #f8f9fa; padding: 30px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 48px; color: #e9ecef; margin-bottom: 15px;">💬</div>
+          <h4 style="color: #6c757d; margin-bottom: 10px;">Пока нет отзывов</h4>
+          <p style="color: #adb5bd; margin: 0;">Отзывы будут появляться после завершения проектов с рекрутерами</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Статистика работодателя -->
+    {% if current_user_stats %}
+    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px;">
+      <h3 style="color: #2c3e50; margin-bottom: 20px;">📊 Статистика работодателя</h3>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+        <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+          <div style="font-size: 32px; font-weight: bold; color: #007bff;">{{ current_user_stats.total_jobs or 0 }}</div>
+          <div style="color: #6c757d;">Всего вакансий</div>
+        </div>
+        <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+          <div style="font-size: 32px; font-weight: bold; color: #28a745;">{{ current_user_stats.completed_jobs or 0 }}</div>
+          <div style="color: #6c757d;">Завершенных проектов</div>
+        </div>
+        <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+          <div style="font-size: 32px; font-weight: bold; color: #ffc107;">{{ current_user_stats.active_jobs or 0 }}</div>
+          <div style="color: #6c757d;">Активных вакансий</div>
+        </div>
+        {% if current_user_stats.avg_project_duration %}
+        <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+          <div style="font-size: 32px; font-weight: bold; color: #17a2b8;">{{ current_user_stats.avg_project_duration }}</div>
+          <div style="color: #6c757d;">Средняя длительность (дни)</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Действия для рекрутеров -->
+    {% if current_user and current_user.user_type.value == 'recruiter' %}
+      <div style="text-align: center; padding: 20px;">
+        <a href="/messages/to/{{ current_user.id }}" style="background: #007bff; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-right: 15px;">
+          💬 Написать сообщение
+        </a>
+        {% if can_rate %}
+          <a href="/rate_current_user/{{ current_user.id }}" style="background: #ffc107; color: #333; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+            ⭐ Оценить работодателя
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <!-- Навигация -->
+    <div style="text-align: center; margin-top: 30px;">
+      <a href="/jobs" style="color: #007bff; text-decoration: none; font-weight: 600;">
+        ← Вернуться к списку вакансий
+      </a>
+    </div>
+  </div>
+{% endblock %}

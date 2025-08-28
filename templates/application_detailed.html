@@ -1,0 +1,688 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+
+<!-- Навигация (хлебные крошки) с выравниванием по левому краю -->
+<div style="margin-bottom: 20px; text-align: left; display: block; width: 100%;">
+  <nav style="font-size: 14px; color: #6c757d; display: inline-block;">
+    <a href="/" style="color: #3498db; text-decoration: none;">Главная</a>
+    <span style="margin: 0 8px;">/</span>
+    <a href="/my/applications" style="color: #3498db; text-decoration: none;">Мои заявки</a>
+    <span style="margin: 0 8px;">/</span>
+    {% if application %}
+      <span>{{ application.job.title }}</span>
+    {% else %}
+      <span>Сообщения</span>
+    {% endif %}
+  </nav>
+</div>
+
+<!-- Заголовок страницы -->
+<div style="margin-bottom: 30px; text-align: left;">
+  <h1 style="font-size: 28px; font-weight: 700; color: #2c3e50; margin: 0 0 8px 0;">
+    {% if application %}
+      {{ application.job.title }}
+    {% else %}
+      Сообщения
+    {% endif %}
+  </h1>
+  <div style="color: #6c757d; font-size: 14px;">
+    {% if application %}
+      Заявка №{{ application.id[:6] if application.id else 'N/A' }}
+    {% else %}
+      Центр сообщений
+    {% endif %}
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+  
+  <!-- Левая колонка - Чат с работодателем -->
+  <div>
+    
+    <!-- Статус заявки -->
+    {% if application %}
+    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0; font-size: 18px; color: #2c3e50;">Статус заявки</h3>
+        
+        {% if application.status %}
+          {% if application.status.value == 'pending' %}
+            <span style="background: #fff3cd; color: #856404; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;">
+              Ожидает выхода сотрудника
+            </span>
+          {% elif application.status.value == 'selected' %}
+            <span style="background: #d1ecf1; color: #0c5460; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;">
+              Оценить работодателя
+            </span>
+          {% elif application.status.value == 'working' %}
+            <span style="background: #d4edda; color: #155724; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;">
+              В работе
+            </span>
+          {% elif application.status.value == 'completed' %}
+            <span style="background: #d4edda; color: #155724; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;">
+              Завершено
+            </span>
+          {% elif application.status.value == 'rejected' %}
+            <span style="background: #f8d7da; color: #721c24; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;">
+              Отклонено
+            </span>
+          {% else %}
+            <span style="background: #f8f9fa; color: #6c757d; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;">
+              {{ application.status.value }}
+            </span>
+          {% endif %}
+        {% endif %}
+      </div>
+      
+      <!-- Детали статуса -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 14px;">
+        <div>
+          <div style="color: #6c757d; margin-bottom: 5px;">ФИО кандидата</div>
+          <div style="color: #2c3e50; font-weight: 500;">
+            {% if application.status and application.status.value in ['selected', 'working', 'completed'] %}
+              {{ current_user.name if current_user else 'Не указано' }}
+            {% else %}
+              Ожидается назначение
+            {% endif %}
+          </div>
+        </div>
+        <div>
+          <div style="color: #6c757d; margin-bottom: 5px;">Ожидаемая дата выхода</div>
+          <div style="color: #2c3e50; font-weight: 500;">
+            {% if application.expected_start_date %}
+              {{ application.expected_start_date.strftime('%d.%m.%Y') }}
+            {% else %}
+              Не указана
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Выбранные рекрутеры -->
+      <div style="margin-top: 20px;">
+        <div style="color: #6c757d; margin-bottom: 10px; font-size: 14px;">Выбранные рекрутеры</div>
+        {% if selected_recruiters %}
+          {% for recruiter in selected_recruiters %}
+            <div style="display: inline-block; background: #3498db; color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px; margin-right: 8px; margin-bottom: 8px;">
+              {{ recruiter.name }}
+            </div>
+          {% endfor %}
+        {% else %}
+          <div style="color: #6c757d; font-style: italic;">Рекрутеры еще не выбраны</div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Чат с работодателем -->
+    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; overflow: hidden; height: 600px; display: flex; flex-direction: column;">
+      
+      <!-- Заголовок чата -->
+      <div style="background: #f8f9fa; padding: 20px; border-bottom: 1px solid #e9ecef;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <div style="width: 45px; height: 45px; background: #3498db; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <span style="color: white; font-size: 16px; font-weight: bold;">
+              {% if application and application.job and application.job.employer %}
+                {{ application.job.employer.name[0] }}
+              {% else %}
+                👤
+              {% endif %}
+            </span>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 18px; color: #2c3e50;">
+              {% if application and application.job and application.job.employer %}
+                {{ application.job.employer.name }}
+              {% else %}
+                Центр сообщений
+              {% endif %}
+            </h3>
+            <div style="color: #28a745; font-size: 14px;">● Онлайн</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Область сообщений -->
+      <div id="chat-messages" style="flex: 1; padding: 20px; overflow-y: auto; background: #fafafa;">
+        
+        <!-- Реальные сообщения из базы данных -->
+        {% if chat_messages %}
+          {% for message in chat_messages %}
+            <div style="margin-bottom: 20px;">
+              <div style="display: flex; justify-content: {{ 'flex-end' if message.sender_id == current_user.id else 'flex-start' }}; margin-bottom: 15px;">
+                <div style="max-width: 70%; 
+                           background: {{ '#3498db' if message.sender_id == current_user.id else 'white' }}; 
+                           color: {{ 'white' if message.sender_id == current_user.id else '#2c3e50' }}; 
+                           padding: 12px 16px; 
+                           border-radius: 18px; 
+                           {% if message.sender_id != current_user.id %}border: 1px solid #e9ecef;{% endif %} 
+                           box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                  <div style="font-size: 14px; line-height: 1.4;">
+                    {{ message.content }}
+                  </div>
+                  <div style="font-size: 12px; 
+                             color: {{ 'rgba(255,255,255,0.8)' if message.sender_id == current_user.id else '#6c757d' }}; 
+                             margin-top: 8px;">
+                    {{ message.created_at.strftime('%H:%M') if message.created_at else 'Время неизвестно' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <!-- Сообщение о том, что чат пуст -->
+          <div style="text-align: center; padding: 40px; color: #6c757d;">
+            <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
+            <div style="font-size: 16px; margin-bottom: 8px;">Начните общение</div>
+            <div style="font-size: 14px;">Отправьте первое сообщение, чтобы начать диалог с работодателем</div>
+          </div>
+        {% endif %}
+        
+        <!-- Индикатор печатания (опционально) -->
+        {% if is_typing %}
+        <div style="display: flex; justify-content: flex-start; margin-bottom: 15px;">
+          <div style="background: white; padding: 12px 16px; border-radius: 18px; border: 1px solid #e9ecef;">
+            <div style="display: flex; align-items: center; gap: 5px; color: #6c757d; font-size: 14px;">
+              <span>
+                {% if application and application.job and application.job.employer %}
+                  {{ application.job.employer.name }}
+                {% else %}
+                  Собеседник
+                {% endif %}
+                печатает
+              </span>
+              <div style="display: flex; gap: 2px;">
+                <div style="width: 4px; height: 4px; background: #6c757d; border-radius: 50%; animation: typing 1.4s infinite ease-in-out;"></div>
+                <div style="width: 4px; height: 4px; background: #6c757d; border-radius: 50%; animation: typing 1.4s infinite ease-in-out 0.2s;"></div>
+                <div style="width: 4px; height: 4px; background: #6c757d; border-radius: 50%; animation: typing 1.4s infinite ease-in-out 0.4s;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        
+      </div>
+      
+      <!-- Область ввода сообщения -->
+      <div style="padding: 20px; border-top: 1px solid #e9ecef; background: white;">
+        <form id="message-form" onsubmit="sendMessage(event)">
+          <div style="display: flex; gap: 12px; align-items: flex-end;">
+            <div style="flex: 1;">
+              <textarea id="message-input" 
+                       name="message"
+                       placeholder="Введите ваше сообщение..." 
+                       style="width: 100%; min-height: 45px; max-height: 120px; padding: 12px 16px; border: 1px solid #ddd; border-radius: 24px; resize: none; outline: none; font-family: inherit; font-size: 14px; line-height: 1.4;"
+                       onkeypress="handleKeyPress(event)"
+                       oninput="autoResize(this)"></textarea>
+            </div>
+            
+            <div style="display: flex; gap: 8px;">
+              <button type="button" onclick="attachFile()" 
+                      style="width: 45px; height: 45px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.3s;"
+                      onmouseover="this.style.background='#e9ecef'"
+                      onmouseout="this.style.background='#f8f9fa'">
+                📎
+              </button>
+              
+              <button type="submit"
+                      style="width: 45px; height: 45px; background: #3498db; color: white; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.3s;"
+                      onmouseover="this.style.background='#2980b9'"
+                      onmouseout="this.style.background='#3498db'">
+                ➤
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+  
+  <!-- Правая колонка - Дополнительная информация -->
+  <div>
+    
+    <!-- Контактное лицо -->
+    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; margin-bottom: 15px;">
+        <div style="width: 50px; height: 50px; background: #3498db; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+          <span style="color: white; font-size: 18px; font-weight: bold;">
+            {% if application and application.job and application.job.employer %}
+              {{ application.job.employer.name[0] }}
+            {% else %}
+              👤
+            {% endif %}
+          </span>
+        </div>
+        <div>
+          <div style="font-weight: 600; color: #2c3e50;">
+            {% if application and application.job and application.job.employer %}
+              {{ application.job.employer.name }}
+            {% else %}
+              Работодатель
+            {% endif %}
+          </div>
+          <div style="color: #6c757d; font-size: 14px;">Работодатель</div>
+          <div style="color: #f39c12;">⭐⭐⭐⭐⭐</div>
+        </div>
+      </div>
+      
+      {% if application and application.job %}
+      <div style="border-top: 1px solid #e9ecef; padding-top: 15px;">
+        <div style="font-size: 14px; color: #6c757d; margin-bottom: 10px;">
+          <strong>Должность:</strong> {{ application.job.title }}
+        </div>
+        {% if application.job.location %}
+        <div style="font-size: 14px; color: #6c757d; margin-bottom: 10px;">
+          <strong>Местоположение:</strong> {{ application.job.location }}
+        </div>
+        {% endif %}
+        {% if application.job.salary_min and application.job.salary_max %}
+        <div style="font-size: 14px; color: #2980b9; font-weight: 600;">
+          💰 {{ "{:,}".format(application.job.salary_min) }} - {{ "{:,}".format(application.job.salary_max) }} {{ application.job.salary_currency or 'тенге' }}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- НОВЫЙ БЛОК: Сопроводительное письмо -->
+    {% if application and application.cover_letter %}
+    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+      <h4 style="margin: 0 0 15px 0; color: #2c3e50; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 20px;">✉️</span>
+        Сопроводительное письмо
+      </h4>
+      
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #3498db;">
+        <div style="color: #495057; line-height: 1.6; font-size: 14px; font-style: italic;">
+          "{{ application.cover_letter }}"
+        </div>
+        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e9ecef; color: #6c757d; font-size: 12px;">
+          <strong>Дата отклика:</strong> {{ application.created_at.strftime('%d.%m.%Y в %H:%M') if application.created_at else 'Дата неизвестна' }}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Доходы -->
+    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+      <h4 style="margin: 0 0 15px 0; color: #2c3e50;">Доходы</h4>
+      
+      <div style="background: linear-gradient(135deg, #e8f5e8, #d4edda); border: 2px solid #28a745; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+        <div style="color: #155724; font-weight: 600; font-size: 14px; margin-bottom: 8px;">💰 Ваш доход:</div>
+        <div style="color: #28a745; font-size: 24px; font-weight: bold; margin-bottom: 5px;">
+          {{ "{:,}".format(recruiter_earnings) if recruiter_earnings else '0' }} ₸
+        </div>
+        <div style="color: #6c757d; font-size: 12px;">70% от стоимости размещения</div>
+      </div>
+      
+      {% if application and application.status and application.status.value in ['selected', 'working', 'completed'] %}
+        <div style="background: #28a745; color: white; padding: 8px 12px; border-radius: 8px; font-size: 14px; text-align: center; font-weight: 600;">
+          ✅ Доход подтвержден
+        </div>
+      {% else %}
+        <div style="background: #ffc107; color: #856404; padding: 8px 12px; border-radius: 8px; font-size: 14px; text-align: center; font-weight: 600;">
+          ⏳ Потенциальный доход
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Документы -->
+    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+      <h4 style="margin: 0 0 15px 0; color: #2c3e50;">Документы</h4>
+      
+      {% if chat_documents %}
+        {% for document in chat_documents %}
+          <div style="margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 32px; height: 32px; background: #dc3545; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                <span style="color: white; font-size: 12px; font-weight: bold;">
+                  {{ document.file_type.upper() if document.file_type else 'DOC' }}
+                </span>
+              </div>
+              <div style="flex: 1;">
+                <div style="color: #3498db; font-size: 14px; text-decoration: none; cursor: pointer;">
+                  {{ document.original_name if document.original_name else 'Документ' }}
+                </div>
+                <div style="color: #6c757d; font-size: 12px;">
+                  {{ document.created_at.strftime('%d.%m.%Y') if document.created_at else 'Дата неизвестна' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div style="text-align: center; padding: 20px; color: #6c757d;">
+          <div style="font-size: 32px; margin-bottom: 12px;">📄</div>
+          <div style="font-size: 14px;">Документы не загружены</div>
+        </div>
+      {% endif %}
+
+      <!-- НОВАЯ КНОПКА: Добавить файл -->
+      <div style="margin-top: 15px; border-top: 1px solid #e9ecef; padding-top: 15px;">
+        <button onclick="addDocumentFile()" 
+                style="width: 100%; background: #17a2b8; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;"
+                onmouseover="this.style.background='#138496'"
+                onmouseout="this.style.background='#17a2b8'">
+          <span style="font-size: 16px;">📁</span>
+          Добавить файл
+        </button>
+        
+        <!-- Скрытое поле для загрузки файлов -->
+        <input type="file" id="document-file-input" style="display: none;" accept=".pdf,.doc,.docx,.txt,.jpg,.png,.jpeg,.xls,.xlsx">
+      </div>
+    </div>
+
+    <!-- Действия (УБРАНА КНОПКА "НАЗАД К ЗАЯВКАМ") -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      {% if application and application.job %}
+      <a href="/jobs/{{ application.job.id }}" 
+         style="background: #3498db; color: white; padding: 12px; text-align: center; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background 0.3s;"
+         onmouseover="this.style.background='#2980b9'"
+         onmouseout="this.style.background='#3498db'">
+        📄 Просмотреть вакансию
+      </a>
+      {% endif %}
+      
+      {% if application and application.status and application.status.value == 'completed' %}
+        <a href="/rate_employer/{{ application.job.employer.id }}" 
+           style="background: #f39c12; color: white; padding: 12px; text-align: center; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background 0.3s;"
+           onmouseover="this.style.background='#e67e22'"
+           onmouseout="this.style.background='#f39c12'">
+          ⭐ Оценить работодателя
+        </a>
+      {% endif %}
+    </div>
+
+  </div>
+  
+</div>
+
+<!-- JavaScript для функциональности чата -->
+<script>
+// Переменные для работы с чатом
+let lastMessageId = null;
+let isRefreshing = false;
+
+function autoResize(textarea) {
+  textarea.style.height = 'auto';
+  textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+}
+
+function handleKeyPress(event) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    sendMessage(event);
+  }
+}
+
+function sendMessage(event) {
+  event.preventDefault();
+  const input = document.getElementById('message-input');
+  const message_content = input.value.trim();
+  
+  if (message_content) {
+    const application_id = '{{ application.id if application else "" }}';
+    if (application_id) {
+      // Отключаем кнопку отправки
+      const sendButton = event.target.querySelector('button[type="submit"]');
+      if (sendButton) sendButton.disabled = true;
+      
+      fetch('/api/send_message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          application_id: application_id,
+          content: message_content,
+          message_type: 'text'
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          addMessageToChat(message_content, true);
+          input.value = '';
+          input.style.height = 'auto';
+          lastMessageId = data.message_id;
+        } else {
+          console.error('Ошибка отправки сообщения:', data.error);
+          alert('Ошибка отправки сообщения: ' + (data.error || 'Неизвестная ошибка'));
+        }
+      })
+      .catch(error => {
+        console.error('Ошибка отправки сообщения:', error);
+        alert('Ошибка при отправке сообщения');
+      })
+      .finally(() => {
+        // Включаем кнопку отправки обратно
+        if (sendButton) sendButton.disabled = false;
+      });
+    } else {
+      alert('Ошибка: не найден ID заявки');
+    }
+  }
+}
+
+function addMessageToChat(message_text, is_from_current_user) {
+  const chatMessages = document.getElementById('chat-messages');
+  const messageDiv = document.createElement('div');
+  const current_time = new Date();
+  const time_string = current_time.getHours().toString().padStart(2, '0') + ':' + 
+                     current_time.getMinutes().toString().padStart(2, '0');
+  
+  messageDiv.innerHTML = `
+    <div style="display: flex; justify-content: ${is_from_current_user ? 'flex-end' : 'flex-start'}; margin-bottom: 15px;">
+      <div style="max-width: 70%; 
+                  background: ${is_from_current_user ? '#3498db' : 'white'}; 
+                  color: ${is_from_current_user ? 'white' : '#2c3e50'}; 
+                  padding: 12px 16px; 
+                  border-radius: 18px; 
+                  ${is_from_current_user ? '' : 'border: 1px solid #e9ecef;'} 
+                  box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+        <div style="font-size: 14px; line-height: 1.4;">
+          ${message_text}
+        </div>
+        <div style="font-size: 12px; 
+                   color: ${is_from_current_user ? 'rgba(255,255,255,0.8)' : '#6c757d'}; 
+                   margin-top: 8px;">
+          ${time_string}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  chatMessages.appendChild(messageDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function attachFile() {
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = '.pdf,.doc,.docx,.txt,.jpg,.png,.jpeg';
+  fileInput.onchange = function(event) {
+    const selected_file = event.target.files[0];
+    if (selected_file) {
+      uploadChatFile(selected_file);
+    }
+  };
+  fileInput.click();
+}
+
+// НОВАЯ ФУНКЦИЯ: Добавить документ в раздел документов
+function addDocumentFile() {
+  const fileInput = document.getElementById('document-file-input');
+  fileInput.onchange = function(event) {
+    const selected_file = event.target.files[0];
+    if (selected_file) {
+      uploadDocumentFile(selected_file);
+    }
+  };
+  fileInput.click();
+}
+
+// НОВАЯ ФУНКЦИЯ: Загрузка документа
+function uploadDocumentFile(file_to_upload) {
+  const application_id = '{{ application.id if application else "" }}';
+  if (!application_id) {
+    alert('Ошибка: не найден ID заявки');
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append('file', file_to_upload);
+  formData.append('application_id', application_id);
+  
+  // Показываем индикатор загрузки
+  const button = event.target;
+  const originalText = button.innerHTML;
+  button.innerHTML = '<span style="font-size: 16px;">⏳</span> Загрузка...';
+  button.disabled = true;
+  
+  fetch('/api/upload_chat_file', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Файл успешно загружен!');
+      // Перезагружаем страницу для отображения нового документа
+      window.location.reload();
+    } else {
+      alert('Ошибка загрузки файла: ' + (data.error || 'Неизвестная ошибка'));
+    }
+  })
+  .catch(error => {
+    console.error('Ошибка загрузки файла:', error);
+    alert('Ошибка при загрузке файла');
+  })
+  .finally(() => {
+    // Восстанавливаем кнопку
+    button.innerHTML = originalText;
+    button.disabled = false;
+  });
+}
+
+function uploadChatFile(file_to_upload) {
+  const application_id = '{{ application.id if application else "" }}';
+  if (!application_id) {
+    alert('Ошибка: не найден ID заявки');
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append('file', file_to_upload);
+  formData.append('application_id', application_id);
+  
+  fetch('/api/upload_chat_file', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      addMessageToChat(`📎 Файл: ${file_to_upload.name}`, true);
+    } else {
+      alert('Ошибка загрузки файла: ' + (data.error || 'Неизвестная ошибка'));
+    }
+  })
+  .catch(error => {
+    console.error('Ошибка загрузки файла:', error);
+    alert('Ошибка при загрузке файла');
+  });
+}
+
+// Автообновление сообщений каждые 5 секунд
+function refreshChatMessages() {
+  if (isRefreshing) return;
+  
+  const application_id = '{{ application.id if application else "" }}';
+  if (application_id) {
+    isRefreshing = true;
+    
+    fetch(`/api/get_messages/${application_id}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.messages) {
+          updateChatDisplay(data.messages);
+        }
+      })
+      .catch(error => {
+        console.error('Ошибка обновления сообщений:', error);
+      })
+      .finally(() => {
+        isRefreshing = false;
+      });
+  }
+}
+
+function updateChatDisplay(new_messages) {
+  const chatMessages = document.getElementById('chat-messages');
+  const current_user_id = '{{ current_user.id if current_user else "" }}';
+  
+  // Очищаем только если есть новые сообщения
+  if (new_messages.length > 0) {
+    chatMessages.innerHTML = '';
+    
+    new_messages.forEach(msg => {
+      const messageDiv = document.createElement('div');
+      const is_current_user = msg.sender_id === current_user_id;
+      const message_time = new Date(msg.created_at).toLocaleTimeString('ru-RU', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      messageDiv.innerHTML = `
+        <div style="display: flex; justify-content: ${is_current_user ? 'flex-end' : 'flex-start'}; margin-bottom: 15px;">
+          <div style="max-width: 70%; 
+                      background: ${is_current_user ? '#3498db' : 'white'}; 
+                      color: ${is_current_user ? 'white' : '#2c3e50'}; 
+                      padding: 12px 16px; 
+                      border-radius: 18px; 
+                      ${is_current_user ? '' : 'border: 1px solid #e9ecef;'} 
+                      box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+            <div style="font-size: 14px; line-height: 1.4;">
+              ${msg.content}
+            </div>
+            <div style="font-size: 12px; 
+                       color: ${is_current_user ? 'rgba(255,255,255,0.8)' : '#6c757d'}; 
+                       margin-top: 8px;">
+              ${message_time}
+            </div>
+          </div>
+        </div>
+      `;
+      
+      chatMessages.appendChild(messageDiv);
+    });
+    
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+}
+
+// Запуск автообновления
+setInterval(refreshChatMessages, 5000);
+
+// Прокрутить чат вниз при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+  const chatMessages = document.getElementById('chat-messages');
+  if (chatMessages) {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+});
+</script>
+
+<style>
+@keyframes typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+</style>
+
+</div>
+
+{% endblock %}

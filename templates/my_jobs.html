@@ -191,15 +191,14 @@
                       
                       <!-- Быстрая смена статуса -->
                       <form method="post" action="/applications/{{ app.id }}/status" style="display: inline;">
-    <select name="new_status" onchange="this.form.submit()">
-        <option value="pending" {% if app.status.value == 'pending' %}selected{% endif %}>⏳ На рассмотрении</option>
-        <option value="selected" {% if app.status.value == 'selected' %}selected{% endif %}>✅ Выбран</option>
-        <option value="working" {% if app.status.value == 'working' %}selected{% endif %}>🔄 Работает</option>
-        <option value="completed" {% if app.status.value == 'completed' %}selected{% endif %}>🎉 Завершен</option>
-        <option value="rejected" {% if app.status.value == 'rejected' %}selected{% endif %}>❌ Отклонен</option>
-    </select>
-</form>
-
+                        <select name="new_status" onchange="this.form.submit()">
+                            <option value="pending" {% if app.status.value == 'pending' %}selected{% endif %}>⏳ На рассмотрении</option>
+                            <option value="selected" {% if app.status.value == 'selected' %}selected{% endif %}>✅ Выбран</option>
+                            <option value="working" {% if app.status.value == 'working' %}selected{% endif %}>🔄 Работает</option>
+                            <option value="completed" {% if app.status.value == 'completed' %}selected{% endif %}>🎉 Завершен</option>
+                            <option value="rejected" {% if app.status.value == 'rejected' %}selected{% endif %}>❌ Отклонен</option>
+                        </select>
+                      </form>
                     </div>
                   </div>
 
@@ -213,6 +212,12 @@
 
                   <!-- Действия с рекрутером -->
                   <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <!-- В списке заявок добавьте: -->
+                    <a href="/jobs/{{ job.id }}/applications/{{ app.id }}" 
+                       style="background: #3498db; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: 600;">
+                       📋 Подробнее
+                    </a>
+                    
                     <a href="/messages/to/{{ app.recruiter.id }}" style="background: #007bff; color: white; padding: 8px 15px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600;">
                       💬 Написать
                     </a>

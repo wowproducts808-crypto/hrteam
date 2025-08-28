@@ -1,36 +1,82 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2>💼 Вакансии</h2>
-
-  {% if current_user and current_user.user_type.value == 'employer' %}
-    <div style="margin-bottom: 20px;">
-      <a href="/jobs/new" style="background: #007bff; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none;">+ Создать вакансию</a>
+<div style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+  
+  <!-- Заголовок страницы -->
+  <div style="margin: 40px 0; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <h1 style="font-size: 28px; font-weight: 700; color: #1a1a1a; margin: 0;">Вакансии</h1>
+      <p style="color: #6b7280; margin: 8px 0 0 0; font-size: 16px;">Найдите подходящие позиции или создайте новую вакансию</p>
     </div>
-  {% endif %}
+    {% if current_user and current_user.user_type.value == 'employer' %}
+      <a href="/jobs/new" style="background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+        <span style="font-size: 14px;">+</span>
+        Создать вакансию
+      </a>
+    {% endif %}
+  </div>
 
-  <!-- Фильтры -->
-  <form method="get" action="/jobs" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 10px; align-items: end;">
-      <input type="text" name="q" value="{{ q or '' }}" placeholder="Поиск вакансий..." style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-      <input type="number" name="salary_min" value="{{ salary_min or '' }}" placeholder="Мин. зарплата" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-      <input type="number" name="salary_max" value="{{ salary_max or '' }}" placeholder="Макс. зарплата" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-      <select name="status" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-        <option value="" {% if not status %}selected{% endif %}>Все статусы</option>
-        <option value="open" {% if status == "open" %}selected{% endif %}>🟢 Открыты</option>
-        <option value="in_progress" {% if status == "in_progress" %}selected{% endif %}>🟡 В процессе</option>
-        <option value="completed" {% if status == "completed" %}selected{% endif %}>🔴 Завершены</option>
-        {% if current_user and current_user.user_type.value == 'admin' %}
-          <option value="draft" {% if status == "draft" %}selected{% endif %}>📝 Черновики</option>
-          <option value="pending" {% if status == "pending" %}selected{% endif %}>⏳ На модерации</option>
-          <option value="rejected" {% if status == "rejected" %}selected{% endif %}>❌ Отклонены</option>
-        {% endif %}
-      </select>
-      <button type="submit" style="background: #28a745; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;">🔍 Найти</button>
+  <!-- Фильтры с минимальными отступами -->
+  <form method="get" action="/jobs" style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 32px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 8px; align-items: end;">
+      
+      <!-- Поиск -->
+      <div>
+        <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 6px;">Поиск вакансий</label>
+        <input type="text" name="q" value="{{ q or '' }}" placeholder="Введите название должности..." 
+               style="width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white; transition: border-color 0.2s;"
+               onfocus="this.style.borderColor='#3b82f6'; this.style.outline='none';"
+               onblur="this.style.borderColor='#d1d5db';">
+      </div>
+
+      <!-- Мин зарплата -->
+      <div>
+        <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 6px;">От</label>
+        <input type="number" name="salary_min" value="{{ salary_min or '' }}" placeholder="100 000" 
+               style="width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white; transition: border-color 0.2s;"
+               onfocus="this.style.borderColor='#3b82f6'; this.style.outline='none';"
+               onblur="this.style.borderColor='#d1d5db';">
+      </div>
+
+      <!-- Макс зарплата -->
+      <div>
+        <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 6px;">До</label>
+        <input type="number" name="salary_max" value="{{ salary_max or '' }}" placeholder="500 000" 
+               style="width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white; transition: border-color 0.2s;"
+               onfocus="this.style.borderColor='#3b82f6'; this.style.outline='none';"
+               onblur="this.style.borderColor='#d1d5db';">
+      </div>
+
+      <!-- Статус -->
+      <div>
+        <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 6px;">Статус</label>
+        <select name="status" style="width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white; transition: border-color 0.2s;"
+                onfocus="this.style.borderColor='#3b82f6'; this.style.outline='none';"
+                onblur="this.style.borderColor='#d1d5db';">
+          <option value="" {% if not status %}selected{% endif %}>Все</option>
+          <option value="open" {% if status == "open" %}selected{% endif %}>Открыты</option>
+          <option value="in_progress" {% if status == "in_progress" %}selected{% endif %}>В процессе</option>
+          <option value="completed" {% if status == "completed" %}selected{% endif %}>Завершены</option>
+          {% if current_user and current_user.user_type.value == 'admin' %}
+            <option value="draft" {% if status == "draft" %}selected{% endif %}>Черновики</option>
+            <option value="pending" {% if status == "pending" %}selected{% endif %}>На модерации</option>
+            <option value="rejected" {% if status == "rejected" %}selected{% endif %}>Отклонены</option>
+          {% endif %}
+        </select>
+      </div>
+
+      <!-- Кнопка поиска -->
+      <button type="submit" style="background: #3b82f6; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.2s;"
+              onmouseover="this.style.backgroundColor='#2563eb'"
+              onmouseout="this.style.backgroundColor='#3b82f6'">
+        Найти
+      </button>
     </div>
   </form>
 
   {% if jobs_with_status %}
-    <div style="display: grid; gap: 20px;">
+    <!-- Список вакансий -->
+    <div style="display: grid; gap: 16px;">
       {% for item in jobs_with_status %}
         {% set job = item.job %}
         {% set user_applied = item.user_applied %}
@@ -38,215 +84,172 @@
         {% set applications_left = item.applications_left %}
         {% set can_apply = item.can_apply %}
         
-        <div style="border: 1px solid #e9ecef; border-radius: 12px; padding: 25px; background: white; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; transition: all 0.2s; position: relative;"
+             onmouseover="this.style.borderColor='#d1d5db'; this.style.boxShadow='0 4px 12px 0 rgba(0, 0, 0, 0.1)'"
+             onmouseout="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
           
-          <!-- Заголовок и статус -->
-          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
-            <div>
-              <h3 style="margin: 0 0 8px 0; color: #2c3e50;">
-                <a href="/jobs/{{ job.id }}" style="text-decoration: none; color: #007bff; font-weight: 600;">{{ job.title }}</a>
-              </h3>
-              <div style="color: #6c757d; font-size: 14px;">
-                <span>🏢 {{ job.employer.name }}</span>
-                {% if job.location %}
-                  <span style="margin-left: 15px;">📍 {{ job.location }}</span>
-                {% endif %}
-                {% if job.employment_type %}
-                  <span style="margin-left: 15px;">⏰ {{ job.employment_type }}</span>
-                {% endif %}
-              </div>
-            </div>
+          <!-- Статус бейдж -->
+          {% if job.status.value == 'open' %}
+            <div style="position: absolute; top: 16px; right: 16px; background: #d1fae5; color: #065f46; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">Открыта</div>
+          {% elif job.status.value == 'in_progress' %}
+            <div style="position: absolute; top: 16px; right: 16px; background: #fef3c7; color: #92400e; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">В процессе</div>
+          {% elif job.status.value == 'completed' %}
+            <div style="position: absolute; top: 16px; right: 16px; background: #f3f4f6; color: #374151; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">Завершена</div>
+          {% endif %}
+
+          <!-- Основная информация -->
+          <div style="margin-bottom: 16px; padding-right: 100px;">
+            <h3 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 600; color: #111827;">
+              <a href="/jobs/{{ job.id }}" style="text-decoration: none; color: inherit; cursor: pointer;"
+                 onmouseover="this.style.color='#3b82f6'"
+                 onmouseout="this.style.color='inherit'">
+                {{ job.title }}
+              </a>
+            </h3>
             
-            <!-- Статус вакансии -->
-            {% if job.status.value == 'open' %}
-              <span style="background: #28a745; color: white; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">🟢 Открыта</span>
-            {% elif job.status.value == 'in_progress' %}
-              <span style="background: #ffc107; color: #333; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">🟡 В процессе</span>
-            {% elif job.status.value == 'completed' %}
-              <span style="background: #6c757d; color: white; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">🔴 Завершена</span>
-            {% elif job.status.value == 'draft' %}
-              <span style="background: #6f42c1; color: white; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">📝 Черновик</span>
-            {% elif job.status.value == 'pending' %}
-              <span style="background: #fd7e14; color: white; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">⏳ На модерации</span>
-            {% elif job.status.value == 'rejected' %}
-              <span style="background: #dc3545; color: white; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">❌ Отклонена</span>
-            {% elif job.status.value == 'paused' %}
-              <span style="background: #adb5bd; color: white; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">⏸️ Приостановлена</span>
-            {% elif job.status.value == 'archived' %}
-              <span style="background: #495057; color: white; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">🗄️ Архив</span>
-            {% else %}
-              <span style="background: #e9ecef; color: #495057; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">{{ job.status.value }}</span>
-            {% endif %}
-          </div>
-
-          <!-- Краткое описание -->
-          <p style="margin: 0 0 15px 0; color: #495057; line-height: 1.6;">
-            {{ job.short_description or (job.description[:150] + '...' if job.description|length > 150 else job.description) }}
-          </p>
-
-          <!-- Зарплата и опыт -->
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <div style="display: flex; gap: 15px; color: #6c757d; font-size: 14px; flex-wrap: wrap;">
-              {% if job.salary_min and job.salary_max %}
-                <span style="background: #e8f4fd; color: #2980b9; padding: 6px 12px; border-radius: 15px; font-weight: 600;">
-                  💰 {{ "{:,}".format(job.salary_min) }} - {{ "{:,}".format(job.salary_max) }} {{ job.salary_currency or 'тенге' }}
+            <!-- Мета информация с серыми иконками -->
+            <div style="display: flex; align-items: center; gap: 16px; font-size: 14px; color: #6b7280; margin-bottom: 12px;">
+              <span style="display: flex; align-items: center; gap: 4px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#6b7280">
+                  <path d="M20 7h-3V6a3 3 0 0 0-6 0v1H8a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h4a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM13 6v1h-2V6a1 1 0 0 1 2 0zm1 13a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V9h6v10z"/>
+                </svg>
+                {{ job.employer.name }}
+              </span>
+              {% if job.location %}
+                <span style="display: flex; align-items: center; gap: 4px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#9ca3af">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  </svg>
+                  {{ job.location }}
                 </span>
               {% endif %}
-              {% if job.experience_level %}
-                <span style="background: #e8f6f3; color: #27ae60; padding: 6px 12px; border-radius: 15px; font-weight: 600;">
-                  👨‍💻 {{ job.experience_level }}
+              {% if job.employment_type %}
+                <span style="display: flex; align-items: center; gap: 4px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#6b7280">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                  {{ job.employment_type }}
+                </span>
+              {% endif %}
+              <span style="display: flex; align-items: center; gap: 4px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#9ca3af">
+                  <path d="M9 11H7v6h2v-6zm4 0h-2v6h2v-6zm4 0h-2v6h2v-6zm2-7v2H5V4h3V2h2v2h4V2h2v2h3zm0 19H5V6h14v17z"/>
+                </svg>
+                {{ job.created_at.strftime('%d.%m.%Y') }}
+              </span>
+            </div>
+
+            <!-- Описание -->
+            <p style="margin: 0 0 16px 0; color: #4b5563; line-height: 1.5; font-size: 14px;">
+              {{ job.short_description or (job.description[:120] + '...' if job.description|length > 120 else job.description) }}
+            </p>
+
+            <!-- Теги -->
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+              {% if job.salary_min and job.salary_max %}
+                <span style="background: #eff6ff; color: #1d4ed8; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">
+                  {{ "{:,}".format(job.salary_min) }} - {{ "{:,}".format(job.salary_max) }} {{ job.salary_currency or 'тенге' }}
                 </span>
               {% endif %}
               {% if job.category %}
-                <span style="background: #fff3cd; color: #856404; padding: 6px 12px; border-radius: 15px; font-weight: 600;">
-                  🏷️ {{ job.category }}
+                <span style="background: #f3f4f6; color: #374151; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">
+                  {{ job.category }}
                 </span>
               {% endif %}
             </div>
-            <div style="text-align: right; font-size: 12px; color: #adb5bd;">
-              <div>{{ job.created_at.strftime('%d.%m.%Y') }}</div>
-              <div>👀 {{ job.views_count or 0 }} просмотров</div>
-            </div>
           </div>
 
-          <!-- Счетчик откликов (УПРОЩЕННЫЙ) -->
-         <!-- Счетчик откликов и выбранных рекрутеров -->
-<div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #007bff;">
-  <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px; margin-bottom: 8px;">
-    <span style="color: #495057;">
-      <strong>👥 Отклики:</strong> {{ item.applications_count }} из {{ item.job.max_applications }}
-    </span>
-    <span style="color: #6c757d;">
-      <strong>🎯 Выбрано рекрутеров:</strong> {{ item.selected_recruiters_count }} из {{ item.max_recruiters }}
-    </span>
-  </div>
-  
-  {% if item.selected_recruiters %}
-    <div style="background: #d4f0d4; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
-      <strong>🏆 Выбранные рекрутеры:</strong>
-      {% for recruiter in item.selected_recruiters %}
-        <span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-right: 5px;">
-          {{ recruiter.name }}
-        </span>
-      {% endfor %}
-    </div>
-  {% endif %}
-  
-  {% if item.job.status.value == 'open' or item.selected_recruiters_count < item.max_recruiters %}
-    {% if item.available_recruiter_slots > 0 %}
-      <span style="color: #28a745; font-weight: 600;">
-        ✅ Доступно мест для рекрутеров: {{ item.available_recruiter_slots }}
-      </span>
-    {% elif item.selected_recruiters_count >= item.max_recruiters %}
-      <span style="color: #dc3545; font-weight: 600;">
-        🎉 Все рекрутеры найдены ({{ item.max_recruiters }}/{{ item.max_recruiters }})
-      </span>
-    {% endif %}
-  {% else %}
-    <span style="color: #6c757d; font-weight: 600;">
-      ⏸️ Набор рекрутеров завершен
-    </span>
-  {% endif %}
-</div>
+          <!-- Прогресс по откликам -->
+          <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px; margin-bottom: 8px;">
+              <span style="color: #374151; font-weight: 500;">
+                Отклики: {{ item.applications_count }}/{{ item.job.max_applications }}
+              </span>
+              <span style="color: #6b7280;">
+                Выбрано: {{ item.selected_recruiters_count }}/{{ item.max_recruiters }}
+              </span>
+            </div>
+            
+            {% if item.selected_recruiters %}
+              <div style="margin-top: 8px;">
+                <span style="font-size: 12px; color: #6b7280; margin-right: 8px;">Выбранные рекрутеры:</span>
+                {% for recruiter in item.selected_recruiters %}
+                  <span style="background: #3b82f6; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-right: 4px;">
+                    {{ recruiter.name }}
+                  </span>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
 
-
-          <!-- Действия -->
+          <!-- Действия с правильным дизайном кнопок -->
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; gap: 10px;">
-              <a href="/jobs/{{ job.id }}" style="background: #007bff; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; transition: background 0.3s;" onmouseover="this.style.background='#0056b3'" onmouseout="this.style.background='#007bff'">
-                📄 Подробнее
+            <div style="display: flex; gap: 12px;">
+              <!-- Кнопка "Подробнее" -->
+              <a href="/jobs/{{ job.id }}" style="display: inline-flex; align-items: center; padding: 10px 16px; background: #f3f4f6; color: #374151; text-decoration: none; font-size: 14px; font-weight: 500; border-radius: 8px; border: 1px solid #d1d5db; transition: all 0.2s;"
+                 onmouseover="this.style.backgroundColor='#e5e7eb'; this.style.borderColor='#9ca3af'"
+                 onmouseout="this.style.backgroundColor='#f3f4f6'; this.style.borderColor='#d1d5db'">
+                Подробнее
               </a>
               
-              <!-- ИСПРАВЛЕННАЯ ЛОГИКА КНОПКИ ОТКЛИКА С ПРОВЕРКАМИ .value -->
               {% if current_user and current_user.user_type.value == 'recruiter' %}
                 {% if user_applied %}
-                  <span style="background: #d4edda; color: #155724; padding: 10px 16px; border-radius: 6px; font-weight: 600;">
-                    ✅ Уже откликались
+                  <!-- Состояние "Откликнулись" -->
+                  <span style="display: inline-flex; align-items: center; padding: 10px 16px; background: #d1fae5; color: #059669; font-size: 14px; font-weight: 500; border-radius: 8px; border: 1px solid #a7f3d0;">
+                    ✓ Откликнулись
                   </span>
-                {% elif not can_apply %}
-                  {% if applications_left == 0 %}
-                    <span style="background: #f8d7da; color: #721c24; padding: 10px 16px; border-radius: 6px; font-weight: 600;">
-                      🚫 Места заняты
-                    </span>
-                  {% elif job.status.value != 'open' %}
-                    <span style="background: #fff3cd; color: #856404; padding: 10px 16px; border-radius: 6px; font-weight: 600;">
-                      ⏸️ Вакансия закрыта
-                    </span>
-                  {% else %}
-                    <span style="background: #f8d7da; color: #721c24; padding: 10px 16px; border-radius: 6px; font-weight: 600;">
-                      🚫 Недоступно
-                    </span>
-                  {% endif %}
-                {% else %}
-                  <a href="/jobs/{{ job.id }}/apply" style="background: #28a745; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; transition: background 0.3s; animation: pulse 2s infinite;" onmouseover="this.style.background='#218838'" onmouseout="this.style.background='#28a745'">
-                    ✋ Откликнуться
+                {% elif can_apply %}
+                  <!-- Кнопка "Откликнуться" -->
+                  <a href="/jobs/{{ job.id }}/apply" style="display: inline-flex; align-items: center; padding: 10px 16px; background: #3b82f6; color: white; text-decoration: none; font-size: 14px; font-weight: 500; border-radius: 8px; border: 1px solid #3b82f6; transition: all 0.2s;"
+                     onmouseover="this.style.backgroundColor='#2563eb'; this.style.borderColor='#2563eb'"
+                     onmouseout="this.style.backgroundColor='#3b82f6'; this.style.borderColor='#3b82f6'">
+                    Откликнуться
                   </a>
+                {% else %}
+                  <span style="display: inline-flex; align-items: center; padding: 10px 16px; background: #f9fafb; color: #9ca3af; font-size: 14px; font-weight: 500; border-radius: 8px; border: 1px solid #e5e7eb;">
+                    Недоступно
+                  </span>
                 {% endif %}
-              {% elif current_user and current_user.user_type.value == 'employer' and current_user.id == job.employer_id %}
-                <a href="/my/jobs" style="background: #17a2b8; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">
-                  ⚙️ Управление
-                </a>
               {% endif %}
-              
-              <!-- Контактная информация для рекрутеров -->
+
               {% if current_user and current_user.user_type.value == 'recruiter' and job.status.value == 'open' %}
-                <a href="/messages/to/{{ job.employer_id }}" style="background: #6f42c1; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">
-                  💬 Написать
+                <!-- Кнопка "Написать" -->
+                <a href="/messages/to/{{ job.employer_id }}" style="display: inline-flex; align-items: center; padding: 10px 16px; background: white; color: #6b7280; text-decoration: none; font-size: 14px; font-weight: 500; border-radius: 8px; border: 1px solid #d1d5db; transition: all 0.2s;"
+                   onmouseover="this.style.borderColor='#9ca3af'; this.style.color='#374151'"
+                   onmouseout="this.style.borderColor='#d1d5db'; this.style.color='#6b7280'">
+                  Написать
                 </a>
               {% endif %}
             </div>
             
-            <!-- Дополнительная информация -->
-            <div style="text-align: right; font-size: 12px; color: #6c757d;">
-              {% if job.deadline %}
-                <div style="color: #e74c3c; font-weight: 600;">⏰ До {{ job.deadline.strftime('%d.%m.%Y') }}</div>
+            <div style="font-size: 12px; color: #9ca3af; text-align: right;">
+              {% if job.views_count %}
+                <div>{{ job.views_count }} просмотров</div>
               {% endif %}
-              {% if job.urgency and job.urgency != 'normal' %}
-                <div style="color: #dc3545; font-weight: 600;">🔥 {{ job.urgency|upper }}</div>
+              {% if job.deadline %}
+                <div style="color: #ef4444; font-weight: 500;">До {{ job.deadline.strftime('%d.%m.%Y') }}</div>
               {% endif %}
             </div>
           </div>
-          
-          <!-- Теги и требования -->
-          {% if job.tags or job.requirements %}
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e9ecef;">
-              {% if job.requirements %}
-                <div style="font-size: 13px; color: #6c757d; margin-bottom: 8px;">
-                  <strong>Требования:</strong> {{ job.requirements[:100] }}{% if job.requirements|length > 100 %}...{% endif %}
-                </div>
-              {% endif %}
-              {% if job.tags %}
-                <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                  {% for tag in job.tags.split(',')[:5] %}
-                    <span style="background: #e9ecef; color: #495057; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
-                      #{{ tag.strip() }}
-                    </span>
-                  {% endfor %}
-                </div>
-              {% endif %}
-            </div>
-          {% endif %}
         </div>
       {% endfor %}
     </div>
+
   {% else %}
-    <div style="text-align: center; padding: 60px; color: #6c757d;">
-      <div style="font-size: 64px; margin-bottom: 20px;">🔍</div>
-      <h3>Вакансий не найдено</h3>
-      <p>Попробуйте изменить параметры поиска или создайте первую вакансию!</p>
+    <!-- Пустое состояние -->
+    <div style="text-align: center; padding: 80px 20px; background: white; border-radius: 12px; border: 1px solid #e5e7eb;">
+      <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;">🔍</div>
+      <h3 style="font-size: 20px; font-weight: 600; color: #111827; margin: 0 0 8px 0;">Вакансий не найдено</h3>
+      <p style="color: #6b7280; margin: 0 0 24px 0;">Попробуйте изменить параметры поиска или создайте первую вакансию</p>
       {% if current_user and current_user.user_type.value == 'employer' %}
-        <a href="/jobs/new" style="background: #007bff; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 15px; display: inline-block;">
-          + Создать вакансию
+        <a href="/jobs/new" style="background: #3b82f6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; transition: background-color 0.2s;"
+           onmouseover="this.style.backgroundColor='#2563eb'"
+           onmouseout="this.style.backgroundColor='#3b82f6'">
+          Создать вакансию
         </a>
       {% endif %}
     </div>
   {% endif %}
 
-  <style>
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-  </style>
+</div>
 {% endblock %}

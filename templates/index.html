@@ -1,5 +1,490 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2>Добро пожаловать в HRspace</h2>
-  <p>Соединяем работодателей и фриланс-рекрутеров.</p>
+
+<!-- Первый блок: Главный герой -->
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #e8f5e8 100%); border-radius: 32px; box-shadow: 0 2px 32px rgba(174,219,243,.16); padding: 55px 40px 40px 40px; margin-bottom: 40px; position: relative;">
+    <div style="flex: 1; min-width: 320px; max-width: 600px;">
+        <h1 style="font-weight: 700; font-size: 56px; line-height: 1.1; margin:0 0 20px 0; color: #1a1a1a;">
+            HR-подбор сотрудников «под ключ»:
+        </h1>
+        <p style="font-size: 24px; color:#555; margin:0 0 38px 0;">
+            найдите идеальных кандидатов за 7 дней с гарантией результата
+        </p>
+        <a href="/jobs/new" style="display:inline-block; background: #4285f4; color: #fff; border: none; padding: 18px 36px; border-radius: 10px; font-size: 18px; font-weight: 600; box-shadow: 0 4px 20px rgba(66,133,244,0.3); transition: all .3s; text-decoration:none;">
+            Найти сотрудника
+        </a>
+    </div>
+    <div style="flex:1; min-width: 270px; display: flex; flex-direction: column; align-items: flex-end; gap: 22px;">
+        <div style="width:350px; height:170px; position:relative;">
+            <div style="position:absolute; top:16px; left:0; width:70px; height:70px; border-radius:16px; background:#fff; box-shadow:0 2px 18px rgba(66,133,244,0.12); display:flex; align-items:center; justify-content:center; font-size:32px;">💼</div>
+            <div style="position:absolute; top:0; right:0; width:70px; height:70px; border-radius:16px; background:#fff; box-shadow:0 2px 18px rgba(66,133,244,0.10); display:flex; align-items:center; justify-content:center; font-size:32px;">⏰</div>
+            <div style="position:absolute; bottom:0; left:70px; width:70px; height:70px; border-radius:16px; background:#fff; box-shadow:0 2px 18px rgba(66,133,244,0.10); display:flex; align-items:center; justify-content:center; font-size:32px;">🎯</div>
+        </div>
+    </div>
+</div>
+
+<!-- Блок с HR-преимуществами -->
+<div style="display: flex; gap: 30px; justify-content: center; margin-bottom: 60px; flex-wrap: wrap;">
+    <div style="flex:1; min-width: 250px; background: #fff; border-radius: 12px; box-shadow: 0 1px 8px rgba(70,150,255,0.09); padding: 30px 25px; text-align: center;">
+        <div style="font-size: 32px; color: #28a745; font-weight: bold; margin-bottom: 10px;">💼</div>
+        <div style="font-size: 28px; font-weight: bold; color: #28a745; margin-bottom: 8px;">Готовые кандидаты</div>
+        <div style="font-weight: 500; color: #6c757d; line-height: 1.4;">Получайте только проверенные резюме с опытом работы</div>
+    </div>
+    <div style="flex:1; min-width: 250px; background: #fff; border-radius: 12px; box-shadow: 0 1px 8px rgba(70,150,255,0.09); padding: 30px 25px; text-align: center;">
+        <div style="font-size: 32px; color: #17a2b8; font-weight: bold; margin-bottom: 10px;">⏰</div>
+        <div style="font-size: 28px; font-weight: bold; color: #17a2b8; margin-bottom: 8px;">До 7 дней подбор</div>
+        <div style="font-weight: 500; color: #6c757d; line-height: 1.4;">Средний срок закрытия вакансии на нашей платформе</div>
+    </div>
+    <div style="flex:1; min-width: 250px; background: #fff; border-radius: 12px; box-shadow: 0 1px 8px rgba(70,150,255,0.09); padding: 30px 25px; text-align: center;">
+        <div style="font-size: 32px; color: #6f42c1; font-weight: bold; margin-bottom: 10px;">🎯</div>
+        <div style="font-size: 28px; font-weight: bold; color: #6f42c1; margin-bottom: 8px;">95% точность</div>
+        <div style="font-weight: 500; color: #6c757d; line-height: 1.4;">попадания в требования по опыту и навыкам</div>
+    </div>
+</div>
+
+<!-- БЛОК 2: Как работает сервис для HR -->
+<div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 80px 40px; margin: 60px -40px; border-radius: 0;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 60px;">
+            <h2 style="font-size: 48px; font-weight: 700; color: #2c3e50; margin: 0 0 20px 0;">
+                HR-процесс без лишних усилий
+            </h2>
+            <p style="font-size: 20px; color: #6c757d; margin: 0; max-width: 600px; margin: 0 auto;">
+                От публикации вакансии до выхода сотрудника на работу
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 60px; align-items: flex-start; flex-wrap: wrap;">
+            <!-- Левая часть: Описание вакансии -->
+            <div style="flex: 1; min-width: 400px; background: white; border-radius: 16px; padding: 40px; box-shadow: 0 8px 30px rgba(0,0,0,0.1);">
+                <div style="background: #e8f5e8; padding: 20px; border-radius: 12px; margin-bottom: 30px;">
+                    <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 20px; font-weight: 600;">Описание вакансии</h3>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; color: #6c757d; margin-bottom: 8px; font-weight: 500;">Должность</label>
+                        <div style="background: white; padding: 12px 16px; border-radius: 8px; border: 2px solid #28a745; display: flex; align-items: center; justify-content: space-between;">
+                            <span style="color: #2c3e50; font-weight: 500;">HR-менеджер</span>
+                            <div style="color: #28a745; font-size: 20px;">✓</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; color: #6c757d; margin-bottom: 8px; font-weight: 500;">Требования к кандидату</label>
+                        <div style="background: white; padding: 12px 16px; border-radius: 8px; border: 2px solid #28a745;">
+                            <ul style="margin: 0; padding-left: 20px; color: #495057; font-size: 14px; line-height: 1.6;">
+                                <li>опыт в HR от 3 лет</li>
+                                <li>знание трудового права</li>
+                                <li>опыт работы с кадровыми системами</li>
+                                <li>навыки проведения собеседований</li>
+                                <li>высшее образование (желательно)</li>
+                            </ul>
+                            <div style="color: #28a745; font-size: 20px; text-align: right; margin-top: 10px;">✓</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center;">
+                    <button style="background: #4285f4; color: white; border: none; padding: 16px 40px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(66,133,244,0.3);">
+                        Опубликовать вакансию
+                    </button>
+                </div>
+            </div>
+
+            <!-- Правая часть: HR-процессы -->
+            <div style="flex: 1; min-width: 400px;">
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="background: #6c757d; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; flex-shrink: 0;">1</div>
+                        <div>
+                            <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">Составьте описание должности</div>
+                            <div style="color: #6c757d; font-size: 14px;">Опишите роль, задачи и требования к кандидату</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="background: #4285f4; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; flex-shrink: 0;">2</div>
+                        <div>
+                            <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">Установите бюджет на рекрутинг</div>
+                            <div style="color: #6c757d; font-size: 14px;">Размер вознаграждения рассчитается от зарплатной вилки</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="background: #4285f4; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; flex-shrink: 0;">3</div>
+                        <div>
+                            <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">Выберите способ оплаты</div>
+                            <div style="color: #6c757d; font-size: 14px;">Корпоративная карта или банковский перевод</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="background: #4285f4; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; flex-shrink: 0;">4</div>
+                        <div>
+                            <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">Активируйте поиск кандидатов</div>
+                            <div style="color: #6c757d; font-size: 14px;">После модерации вакансия станет доступна рекрутерам</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="background: #4285f4; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; flex-shrink: 0;">5</div>
+                        <div>
+                            <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">Отберите лучших рекрутеров</div>
+                            <div style="color: #6c757d; font-size: 14px;">Выберите до 3 лучших специалистов по рейтингу</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="background: #4285f4; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; flex-shrink: 0;">6</div>
+                        <div>
+                            <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">Получайте проверенных кандидатов</div>
+                            <div style="color: #6c757d; font-size: 14px;">Рекрутеры проводят отбор и предлагают лучших</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="background: #28a745; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; flex-shrink: 0;">7</div>
+                        <div>
+                            <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">Делайте предложение и закрывайте позицию</div>
+                            <div style="color: #6c757d; font-size: 14px;">Проведите итоговое собеседование и наймите лучшего</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- БЛОК 3: Как работают рекрутеры -->
+<div style="padding: 80px 40px; margin: 60px -40px; background: white;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 60px;">
+            <h2 style="font-size: 48px; font-weight: 700; color: #2c3e50; margin: 0 0 20px 0;">
+                Доверьте рекрутерам полный цикл подбора
+            </h2>
+            <p style="font-size: 20px; color: #6c757d; margin: 0; max-width: 700px; margin: 0 auto;">
+                Профессиональные охотники за головами берут на себя весь процесс рекрутинга от поиска до адаптации
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 60px; align-items: center; flex-wrap: wrap;">
+            <!-- Левая часть: Цветные этапы -->
+            <div style="flex: 1; min-width: 400px; display: flex; flex-direction: column; gap: 15px;">
+                
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div style="background: linear-gradient(135deg, #4CAF50, #45a049); width: 200px; height: 60px; border-radius: 30px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 24px; box-shadow: 0 4px 15px rgba(76,175,80,0.3);">1</div>
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 5px 0; font-weight: 600; color: #2c3e50;">Анализ требований к вакансии</h4>
+                        <p style="margin: 0; color: #6c757d; font-size: 14px;">Составляют портрет идеального кандидата и стратегию поиска</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div style="background: linear-gradient(135deg, #66D9A5, #4CAF50); width: 180px; height: 55px; border-radius: 27px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 22px; box-shadow: 0 4px 15px rgba(102,217,165,0.3);">2</div>
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 5px 0; font-weight: 600; color: #2c3e50;">Размещение на всех площадках</h4>
+                        <p style="margin: 0; color: #6c757d; font-size: 14px;">Публикуют вакансию на топовых сайтах поиска работы и в соцсетях</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div style="background: linear-gradient(135deg, #A8E6CF, #66D9A5); width: 160px; height: 50px; border-radius: 25px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 20px; box-shadow: 0 4px 15px rgba(168,230,207,0.3);">3</div>
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 5px 0; font-weight: 600; color: #2c3e50;">Активный поиск специалистов</h4>
+                        <p style="margin: 0; color: #6c757d; font-size: 14px;">Умный поиск по LinkedIn, GitHub и профессиональным базам</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div style="background: linear-gradient(135deg, #FFB3BA, #FF8A95); width: 140px; height: 45px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px; box-shadow: 0 4px 15px rgba(255,179,186,0.3);">4</div>
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 5px 0; font-weight: 600; color: #2c3e50;">Отбор и квалификация</h4>
+                        <p style="margin: 0; color: #6c757d; font-size: 14px;">Проводят телефонный отбор и проверяют профессиональные навыки</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div style="background: linear-gradient(135deg, #DDA0DD, #BA55D3); width: 120px; height: 40px; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(221,160,221,0.3);">5</div>
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 5px 0; font-weight: 600; color: #2c3e50;">Работа с базой данных hh.ru</h4>
+                        <p style="margin: 0; color: #6c757d; font-size: 14px;">Поиск пассивных кандидатов в крупнейшей HR-базе России</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div style="background: linear-gradient(135deg, #B19CD9, #9370DB); width: 100px; height: 35px; border-radius: 17px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(177,156,217,0.3);">6</div>
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 5px 0; font-weight: 600; color: #2c3e50;">Координация собеседований</h4>
+                        <p style="margin: 0; color: #6c757d; font-size: 14px;">Организуют интервью и собирают отзывы от руководителя</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div style="background: linear-gradient(135deg, #87CEEB, #4169E1); width: 80px; height: 30px; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px; box-shadow: 0 4px 15px rgba(135,206,235,0.3);">7</div>
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 5px 0; font-weight: 600; color: #2c3e50;">Переговоры по предложению</h4>
+                        <p style="margin: 0; color: #6c757d; font-size: 14px;">Помогают привлечь кандидата на выгодных условиях</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Правая часть: Призыв к действию -->
+            <div style="flex: 1; min-width: 400px; text-align: center; padding: 40px;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 60px 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(102,126,234,0.3);">
+                    <h3 style="font-size: 36px; font-weight: 700; margin: 0 0 20px 0;">Готовы увеличить команду?</h3>
+                    <p style="font-size: 18px; margin: 0 0 30px 0; opacity: 0.9; line-height: 1.5;">
+                        Наши охотники за головами уже помогли 200+ компаниям найти ключевых сотрудников
+                    </p>
+                    <a href="/jobs/new" style="display: inline-block; background: white; color: #667eea; padding: 18px 40px; border-radius: 50px; font-size: 18px; font-weight: 600; text-decoration: none; box-shadow: 0 8px 25px rgba(255,255,255,0.3); transition: transform 0.3s ease;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                        Запустить поиск кандидатов
+                    </a>
+                    
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
+                        <div style="display: flex; justify-content: space-around; text-align: center;">
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold;">500+</div>
+                                <div style="font-size: 14px; opacity: 0.8;">успешных наймов</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold;">97%</div>
+                                <div style="font-size: 14px; opacity: 0.8;">прошли испытание</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold;">7 дней</div>
+                                <div style="font-size: 14px; opacity: 0.8;">средний срок найма</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- БЛОК 4: Схемы оплаты и экономия -->
+<div style="background: #f8f9fa; padding: 80px 40px; margin: 60px -40px; border-radius: 0;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+        
+        <!-- Заголовок -->
+        <div style="text-align: center; margin-bottom: 60px;">
+            <h2 style="font-size: 48px; font-weight: 700; color: #2c3e50; margin: 0 0 20px 0;">
+                Сколько платить за подбор — определяете вы
+            </h2>
+            <p style="font-size: 20px; color: #6c757d; margin: 0; max-width: 700px; margin: 0 auto;">
+                Прозрачные тарифы без скрытых комиссий — выберите удобную схему оплаты
+            </p>
+        </div>
+
+        <!-- Схемы оплаты -->
+        <div style="display: flex; gap: 30px; justify-content: center; margin-bottom: 60px; flex-wrap: wrap;">
+            
+            <!-- Схема 1: 100% сразу -->
+            <div style="flex: 1; min-width: 280px; background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 2px solid #28a745;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="background: #28a745; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 15px;">✓</div>
+                    <h3 style="margin: 0; color: #2c3e50; font-size: 18px; font-weight: 600;">100% оплаты сразу после выхода сотрудника</h3>
+                </div>
+                <div style="color: #6c757d; font-size: 14px; line-height: 1.5; text-align: center;">
+                    Полная оплата сразу после успешного трудоустройства кандидата
+                </div>
+            </div>
+
+            <!-- Схема 2: 50% + 50% -->
+            <div style="flex: 1; min-width: 280px; background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 2px solid #ffc107;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="background: #ffc107; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 15px;">✓</div>
+                    <h3 style="margin: 0; color: #2c3e50; font-size: 18px; font-weight: 600;">50% — после выхода, 50% — после адаптации</h3>
+                </div>
+                <div style="color: #6c757d; font-size: 14px; line-height: 1.5; text-align: center;">
+                    Половина при трудоустройстве, половина после испытательного срока
+                </div>
+            </div>
+
+            <!-- Схема 3: 100% гарантия -->
+            <div style="flex: 1; min-width: 280px; background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 2px solid #6f42c1;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="background: #6f42c1; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 15px;">✓</div>
+                    <h3 style="margin: 0; color: #2c3e50; font-size: 18px; font-weight: 600;">100% — после гарантийного периода</h3>
+                </div>
+                <div style="color: #6c757d; font-size: 14px; line-height: 1.5; text-align: center;">
+                    Полная оплата только после успешного прохождения адаптации
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Блок экономии -->
+        <div style="background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%); padding: 40px; border-radius: 20px; margin-bottom: 40px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h3 style="font-size: 32px; font-weight: 700; color: #2c3e50; margin: 0 0 15px 0;">
+                    Чтобы срочно закрыть важные позиции, нужно задействовать больше каналов поиска — вам не нужно за них доплачивать
+                </h3>
+                <p style="color: #6c757d; font-size: 16px; margin: 0;">
+                    Вы можете сэкономить от 39% на подборе <span style="background: #4285f4; color: white; padding: 4px 12px; border-radius: 6px; font-weight: 600;">главного бухгалтера</span> с зарплатой 700 000 ₸
+                </p>
+            </div>
+
+            <!-- Сравнительная таблица -->
+            <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.1);">
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 0; font-size: 14px;">
+                    
+                    <!-- Заголовки -->
+                    <div style="background: #f8f9fa; padding: 20px; font-weight: 600; color: #2c3e50; border-right: 1px solid #e9ecef;">Инструменты поиска</div>
+                    <div style="background: #f8f9fa; padding: 20px; text-align: center; font-weight: 600; color: #2c3e50; border-right: 1px solid #e9ecef;">Самостоятельно</div>
+                    <div style="background: #f8f9fa; padding: 20px; text-align: center; font-weight: 600; color: #2c3e50; border-right: 1px solid #e9ecef;">С кадровым агентством</div>
+                    <div style="background: #4285f4; padding: 20px; text-align: center; font-weight: 600; color: white;">HRteam</div>
+
+                    <!-- Строка 1 -->
+                    <div style="padding: 18px 20px; border-right: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef; color: #495057;">Доступ к базе резюме на hh.kz</div>
+                    <div style="padding: 18px 20px; text-align: center; border-right: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef; color: #495057;">25 000 ₸</div>
+                    <div style="padding: 18px 20px; text-align: center; border-right: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef; color: #6c757d;">○</div>
+                    <div style="padding: 18px 20px; text-align: center; background: #e8f4fd; border-bottom: 1px solid #e9ecef; color: #28a745; font-weight: 600;">✓</div>
+
+                    <!-- Строка 2 -->
+                    <div style="padding: 18px 20px; border-right: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef; color: #495057;">Размещение вакансии на hh.kz</div>
+                    <div style="padding: 18px 20px; text-align: center; border-right: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef; color: #495057;">8 500 ₸</div>
+                    <div style="padding: 18px 20px; text-align: center; border-right: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef; color: #6c757d;">○</div>
+                    <div style="padding: 18px 20px; text-align: center; background: #e8f4fd; border-bottom: 1px solid #e9ecef; color: #28a745; font-weight: 600;">✓</div>
+
+                    <!-- Строка 3 -->
+                    <div style="padding: 18px 20px; border-right: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef; color: #495057;">Доступ к базам других сервисов</div>
+                    <div style="padding: 18px 20px; text-align: center; border-right: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef; color: #495057;">35 000 ₸</div>
+                    <div style="padding: 18px 20px; text-align: center; border-right: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef; color: #6c757d;">○</div>
+                    <div style="padding: 18px 20px; text-align: center; background: #e8f4fd; border-bottom: 1px solid #e9ecef; color: #28a745; font-weight: 600;">✓</div>
+
+                    <!-- Строка 4 -->
+                    <div style="padding: 18px 20px; border-right: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef; color: #495057;">Размещение в соцсетях и каналах</div>
+                    <div style="padding: 18px 20px; text-align: center; border-right: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef; color: #495057;">15 000 ₸</div>
+                    <div style="padding: 18px 20px; text-align: center; border-right: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef; color: #6c757d;">○</div>
+                    <div style="padding: 18px 20px; text-align: center; background: #e8f4fd; border-bottom: 1px solid #e9ecef; color: #28a745; font-weight: 600;">✓</div>
+
+                    <!-- Строка 5 -->
+                    <div style="padding: 18px 20px; border-right: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef; color: #495057;">Зарплата штатному рекрутеру</div>
+                    <div style="padding: 18px 20px; text-align: center; border-right: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef; color: #495057;">400 000 ₸</div>
+                    <div style="padding: 18px 20px; text-align: center; border-right: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef; color: #28a745; font-weight: 600;">✓</div>
+                    <div style="padding: 18px 20px; text-align: center; background: #e8f4fd; border-bottom: 1px solid #e9ecef; color: #28a745; font-weight: 600;">✓</div>
+
+                    <!-- Итого -->
+                    <div style="padding: 20px; background: #f8f9fa; font-weight: 700; color: #2c3e50; border-right: 1px solid #e9ecef;">Итого затраты на подбор в месяц</div>
+                    <div style="padding: 20px; text-align: center; background: #f8f9fa; font-weight: 700; color: #495057; border-right: 1px solid #e9ecef;">483 500 ₸</div>
+                    <div style="padding: 20px; text-align: center; background: #f8f9fa; font-weight: 700; color: #495057; border-right: 1px solid #e9ecef;">560 000 ₸</div>
+                    <div style="padding: 20px; text-align: center; background: #4285f4; font-weight: 700; color: white; font-size: 18px;">294 000 ₸</div>
+
+                </div>
+            </div>
+
+            <!-- Экономия -->
+            <div style="text-align: center; margin-top: 30px;">
+                <div style="display: inline-block; background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 20px 40px; border-radius: 16px; box-shadow: 0 8px 25px rgba(40,167,69,0.3);">
+                    <div style="font-size: 14px; opacity: 0.9; margin-bottom: 5px;">Экономия с HRteam</div>
+                    <div style="font-size: 32px; font-weight: 700;">до 266 000 ₸</div>
+                    <div style="font-size: 14px; opacity: 0.9; margin-top: 5px;">в месяц на подборе одного специалиста</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Призыв к действию -->
+        <div style="text-align: center; padding: 40px;">
+            <h3 style="font-size: 28px; font-weight: 600; color: #2c3e50; margin: 0 0 20px 0;">
+                Начните экономить на подборе персонала уже сегодня
+            </h3>
+            <a href="/jobs/new" style="display: inline-block; background: #4285f4; color: white; padding: 18px 40px; border-radius: 12px; font-size: 18px; font-weight: 600; text-decoration: none; box-shadow: 0 8px 25px rgba(66,133,244,0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                Разместить вакансию бесплатно
+            </a>
+            <p style="color: #6c757d; font-size: 14px; margin: 15px 0 0 0;">
+                Первые 5 откликов рекрутеров — бесплатно
+            </p>
+        </div>
+
+    </div>
+</div>
+
+<!-- БЛОК 5: Рекрутеры из разных сфер -->
+<div style="padding: 80px 40px; margin: 60px -40px; background: white;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+        
+        <!-- Заголовок -->
+        <div style="text-align: center; margin-bottom: 60px;">
+            <h2 style="font-size: 48px; font-weight: 700; color: #2c3e50; margin: 0 0 20px 0;">
+                Рекрутеры специализируются в разных отраслях
+            </h2>
+            <p style="font-size: 20px; color: #6c757d; margin: 0; max-width: 700px; margin: 0 auto;">
+                У нас есть эксперты в каждой сфере бизнеса — от IT до медицины
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 60px; align-items: center; flex-wrap: wrap;">
+            
+            <!-- Левая часть: Диаграмма -->
+            <div style="flex: 1; min-width: 400px; text-align: center;">
+                <img src="https://ppl-ai-code-interpreter-files.s3.amazonaws.com/web/direct-files/a51b0ecf2a673b0f03d21b4a5ab5b056/de3405a9-379c-49b7-a772-b7fb78f3a6a9/96566c72.png" alt="Диаграмма специализации рекрутеров" style="max-width: 100%; height: auto; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+            </div>
+
+            <!-- Правая часть: Объяснение и преимущества -->
+            <div style="flex: 1; min-width: 400px;">
+                
+                <!-- Блок 1 -->
+                <div style="background: #f8f9fa; border-radius: 16px; padding: 30px; margin-bottom: 30px; border-left: 4px solid #4285f4;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <div style="display: flex; gap: 5px;">
+                            <div style="width: 50px; height: 50px; background: #ffebee; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">👩‍💼</div>
+                            <div style="width: 50px; height: 50px; background: #e3f2fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">👨‍💻</div>
+                            <div style="width: 50px; height: 50px; background: #f3e5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">👩‍🔬</div>
+                            <div style="width: 50px; height: 50px; background: #e8f5e8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">👨‍⚕️</div>
+                            <div style="width: 50px; height: 50px; background: #fff3e0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">👩‍🏫</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 24px; font-weight: bold; color: #2c3e50;">6 7 8 9 10</div>
+                        </div>
+                    </div>
+                    <h3 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 20px; font-weight: 600;">
+                        Один заказ — до 10 кандидатов с одинаковыми требованиями
+                    </h3>
+                    <p style="margin: 0; color: #6c757d; font-size: 14px; line-height: 1.5;">
+                        Экономит время и упрощает коммуникацию с рекрутерами. Оплата — за каждого вышедшего сотрудника.
+                    </p>
+                </div>
+
+                <!-- Блок 2 -->
+                <div style="background: #f8f9fa; border-radius: 16px; padding: 30px; border-left: 4px solid #28a745;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <div style="display: flex; gap: 8px;">
+                            <div style="width: 50px; height: 50px; background: #4285f4; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; font-weight: bold;">⭐</div>
+                            <div style="width: 50px; height: 50px; background: #9370db; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; font-weight: bold;">⭐</div>
+                            <div style="width: 50px; height: 50px; background: #28a745; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; font-weight: bold;">⭐</div>
+                        </div>
+                        <div style="color: #ffc107; font-size: 20px;">⭐⭐⭐⭐⭐</div>
+                    </div>
+                    <h3 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 20px; font-weight: 600;">
+                        Закрывать заказы могут одновременно несколько рекрутеров
+                    </h3>
+                    <p style="margin: 0; color: #6c757d; font-size: 14px; line-height: 1.5;">
+                        Каждый старается найти лучшего кандидата быстрее. 
+                        <strong>Хотите работать с топ-рекрутером? Укажите одного исполнителя.</strong>
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Призыв к действию -->
+        <div style="text-align: center; padding: 60px 40px 0;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 50px 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(102,126,234,0.3);">
+                <h3 style="font-size: 32px; font-weight: 700; margin: 0 0 15px 0;">Найдите специалиста в любой отрасли</h3>
+                <p style="font-size: 16px; margin: 0 0 25px 0; opacity: 0.9; line-height: 1.5;">
+                    Наши рекрутеры работают во всех сферах бизнеса — от стартапов до крупных корпораций
+                </p>
+                <a href="/jobs/new" style="display: inline-block; background: white; color: #667eea; padding: 16px 35px; border-radius: 50px; font-size: 16px; font-weight: 600; text-decoration: none; box-shadow: 0 8px 25px rgba(255,255,255,0.3); transition: transform 0.3s ease;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                    Начать поиск сотрудников
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 {% endblock %}

@@ -6,8 +6,8 @@
   <p style="color: #6c757d; margin: 0;">Все ваши отклики на вакансии с актуальными статусами</p>
 </div>
 
-<!-- Обновленная статистика -->
-<div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; margin-bottom: 30px;">
+<!-- Обновленная статистика с добавлением дохода -->
+<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 15px; margin-bottom: 30px;">
   <div style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 15px; border-radius: 10px; text-align: center;">
     <div style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">{{ total_applications }}</div>
     <div style="font-size: 12px; opacity: 0.9;">Всего откликов</div>
@@ -31,6 +31,11 @@
   <div style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; padding: 15px; border-radius: 10px; text-align: center;">
     <div style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">{{ rejected_applications }}</div>
     <div style="font-size: 12px; opacity: 0.9;">Отклонено</div>
+  </div>
+  <!-- Блок с потенциальным доходом -->
+  <div style="background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white; padding: 15px; border-radius: 10px; text-align: center;">
+    <div style="font-size: 18px; font-weight: bold; margin-bottom: 2px;">{{ "{:,}".format(total_potential_earnings) }}₸</div>
+    <div style="font-size: 12px; opacity: 0.9;">Потенциальный доход</div>
   </div>
 </div>
 
@@ -64,59 +69,65 @@
 <!-- Список откликов -->
 {% if applications %}
   <div style="display: grid; gap: 20px;">
-    {% for application in applications %}
+    {% for item in applications %}
+      <!-- Назначаем переменные для удобства -->
+      {% set application = item['application'] %}
+      {% set job = item['job'] %}
+      {% set earnings = item['recruiter_earnings'] %}
+      
       <div style="border: 1px solid #e9ecef; border-radius: 12px; padding: 25px; background: white; box-shadow: 0 4px 8px rgba(0,0,0,0.08); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
         
         <!-- Заголовок отклика -->
         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
           <div>
             <h3 style="margin: 0 0 8px 0; color: #2c3e50;">
-              <a href="/jobs/{{ application.job.id }}" style="text-decoration: none; color: #3498db; font-weight: 600;">
-                {{ application.job.title }}
+              <a href="/jobs/{{ job.id }}" style="text-decoration: none; color: #3498db; font-weight: 600;">
+                {{ job.title }}
               </a>
             </h3>
             <div style="color: #6c757d; font-size: 14px;">
-              <span>🏢 {{ application.job.employer.name }}</span>
-              {% if application.job.location %}
-                <span style="margin-left: 15px;">📍 {{ application.job.location }}</span>
+              <span>🏢 {{ job.employer.name }}</span>
+              {% if job.location %}
+                <span style="margin-left: 15px;">📍 {{ job.location }}</span>
               {% endif %}
-              {% if application.job.employment_type %}
-                <span style="margin-left: 15px;">⏰ {{ application.job.employment_type }}</span>
+              {% if job.employment_type %}
+                <span style="margin-left: 15px;">⏰ {{ job.employment_type }}</span>
               {% endif %}
             </div>
           </div>
           
-          <!-- ОБНОВЛЕННЫЕ СТАТУСЫ ОТКЛИКОВ -->
+          <!-- Статусы откликов -->
           <div style="text-align: right;">
-            {% if application.status == 'pending' %}
+            {% if application.status.value == 'pending' %}
               <span style="background: #fff3cd; color: #856404; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;">⏳ Ожидает рассмотрения</span>
-            {% elif application.status == 'selected' %}
+            {% elif application.status.value == 'selected' %}
               <span style="background: #cce5ff; color: #004085; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;">✅ Выбран для работы</span>
-            {% elif application.status == 'working' %}
+            {% elif application.status.value == 'working' %}
               <span style="background: #d4edda; color: #155724; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;">🚀 Работаю над задачей</span>
-            {% elif application.status == 'completed' %}
+            {% elif application.status.value == 'completed' %}
               <span style="background: #d1ecf1; color: #0c5460; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;">🏆 Успешно завершил</span>
-            {% elif application.status == 'rejected' %}
+            {% elif application.status.value == 'rejected' %}
               <span style="background: #f8d7da; color: #721c24; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;">❌ Отклонен</span>
             {% endif %}
             
             <!-- Статус вакансии -->
             <div style="margin-top: 8px; font-size: 12px;">
-              {% if application.job.status == 'open' %}
+              {% if job.status.value == 'open' %}
                 <span style="color: #28a745;">🟢 Вакансия открыта</span>
-              {% elif application.job.status == 'in_progress' %}
+              {% elif job.status.value == 'in_progress' %}
                 <span style="color: #ffc107;">🟡 Вакансия в процессе</span>
-              {% elif application.job.status == 'completed' %}
+              {% elif job.status.value == 'completed' %}
                 <span style="color: #6c757d;">🔴 Вакансия закрыта</span>
               {% endif %}
             </div>
           </div>
         </div>
 
+
         <!-- Краткое описание вакансии -->
         <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #3498db;">
           <p style="margin: 0; color: #495057; line-height: 1.5; font-size: 14px;">
-            {{ application.job.short_description or (application.job.description[:120] + '...' if application.job.description|length > 120 else application.job.description) }}
+            {{ job.short_description or (job.description[:120] + '...' if job.description|length > 120 else job.description) }}
           </p>
         </div>
 
@@ -124,13 +135,8 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
           <div style="display: flex; gap: 15px; align-items: center;">
             <span style="background: #e8f4fd; color: #2980b9; padding: 6px 12px; border-radius: 15px; font-size: 14px; font-weight: 600;">
-              💰 {{ application.job.salary_min }} - {{ application.job.salary_max }} {{ application.job.salary_currency or 'тенге' }}
+              💼 {{ "{:,}".format(job.salary_min) }} - {{ "{:,}".format(job.salary_max) }} {{ job.salary_currency or 'тенге' }}
             </span>
-            {% if application.job.experience_level %}
-              <span style="background: #e8f6f3; color: #27ae60; padding: 6px 12px; border-radius: 15px; font-size: 14px; font-weight: 600;">
-                👨‍💻 {{ application.job.experience_level }}
-              </span>
-            {% endif %}
           </div>
           <div style="text-align: right; color: #6c757d; font-size: 13px;">
             <div style="font-weight: 600;">Отклик отправлен:</div>
@@ -138,33 +144,23 @@
           </div>
         </div>
 
-        <!-- Сопроводительное письмо -->
-        {% if application.cover_letter %}
-          <div style="margin-bottom: 20px;">
-            <h4 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 16px;">📄 Ваше сопроводительное письмо:</h4>
-            <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; color: #856404;">
-              <p style="margin: 0; line-height: 1.5; font-size: 14px;">{{ application.cover_letter }}</p>
-            </div>
-          </div>
-        {% endif %}
-
         <!-- Дополнительная информация для разных статусов -->
-        {% if application.status == 'selected' %}
+        {% if application.status.value == 'selected' %}
           <div style="background: #cce5ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
             <h5 style="margin: 0 0 8px 0; color: #004085;">🎉 Поздравляем! Вы выбраны для работы над этой вакансией.</h5>
             <p style="margin: 0; font-size: 14px; color: #004085;">Свяжитесь с работодателем для обсуждения деталей проекта.</p>
           </div>
-        {% elif application.status == 'working' %}
+        {% elif application.status.value == 'working' %}
           <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
             <h5 style="margin: 0 0 8px 0; color: #155724;">🚀 Вы работаете над этой вакансией</h5>
             <p style="margin: 0; font-size: 14px; color: #155724;">Желаем успехов в поиске подходящего кандидата!</p>
           </div>
-        {% elif application.status == 'completed' %}
+        {% elif application.status.value == 'completed' %}
           <div style="background: #d1ecf1; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
             <h5 style="margin: 0 0 8px 0; color: #0c5460;">🏆 Поздравляем с успешным завершением!</h5>
             <p style="margin: 0; font-size: 14px; color: #0c5460;">Вы успешно закрыли эту вакансию. Ожидайте оценку от работодателя.</p>
           </div>
-        {% elif application.status == 'rejected' %}
+        {% elif application.status.value == 'rejected' %}
           <div style="background: #f8d7da; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
             <h5 style="margin: 0 0 8px 0; color: #721c24;">😔 К сожалению, ваш отклик не был принят</h5>
             <p style="margin: 0; font-size: 14px; color: #721c24;">Не расстраивайтесь! Продолжайте искать подходящие проекты.</p>
@@ -174,18 +170,16 @@
         <!-- Действия -->
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div style="display: flex; gap: 10px;">
-            <a href="/jobs/{{ application.job.id }}" style="background: #3498db; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; transition: background 0.3s;" onmouseover="this.style.background='#2980b9'" onmouseout="this.style.background='#3498db'">
-              📄 Посмотреть вакансию
-            </a>
-            <a href="/messages/to/{{ application.job.employer.id }}" style="background: #27ae60; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 600; transition: background 0.3s;" onmouseover="this.style.background='#229954'" onmouseout="this.style.background='#27ae60'">
-              💬 Написать работодателю
+            <a href="/applications/{{ application.id }}" 
+               style="background: #3498db; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none;">
+               📋 Подробнее о заявке
             </a>
           </div>
           
           <!-- Дополнительная информация -->
           <div style="color: #6c757d; font-size: 13px; text-align: right;">
-            {% set days_ago = (application.created_at.now() - application.job.created_at).days %}
-            <div>Вакансия создана: {{ application.job.created_at.strftime('%d.%m.%Y') }}</div>
+            <div>Вакансия создана: {{ job.created_at.strftime('%d.%m.%Y') }}</div>
+            {% set days_ago = (job.created_at.now() - job.created_at).days %}
             {% if days_ago < 7 %}
               <div style="color: #27ae60; font-weight: 600;">🔥 Свежая вакансия</div>
             {% endif %}

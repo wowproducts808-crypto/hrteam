@@ -1,51 +1,433 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2>Мои сообщения</h2>
-  
-  <h3>Отправить новое сообщение</h3>
-  <form method="post" action="/messages/send">
-    <label>Получатель:<br>
-      <select name="receiver_id" required>
-        <option value="">Выберите получателя</option>
-        {% for user in users %}
-          <option value="{{ user.id }}">{{ user.name }} ({{ user.user_type.value }})</option>
-        {% endfor %}
-      </select>
-    </label><br><br>
-    <label>Сообщение:<br>
-      <textarea name="content" rows="4" cols="50" required></textarea>
-    </label><br><br>
-    <button type="submit">Отправить</button>
-  </form>
-  
-  <hr>
-  
-  <h3>Полученные сообщения</h3>
-  {% if messages_received %}
-    <ul>
-      {% for msg in messages_received %}
-        <li>
-          <strong>От {{ msg.sender.name }}:</strong> {{ msg.content }}
-          <small>({{ msg.created_at.strftime('%d.%m.%Y %H:%M') }})</small>
-          <a href="/messages/to/{{ msg.sender.id }}">Ответить</a>
-        </li>
-      {% endfor %}
-    </ul>
+
+<div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+
+<!-- Навигация (хлебные крошки) -->
+<div style="margin-bottom: 20px; text-align: left;">
+  <nav style="font-size: 14px; color: #6c757d;">
+    <a href="/" style="color: #3498db; text-decoration: none;">Главная</a>
+    <span style="margin: 0 8px;">/</span>
+    {% if application %}
+      {% if current_user.user_type.value == 'recruiter' %}
+        <a href="/my/applications" style="color: #3498db; text-decoration: none;">Мои заявки</a>
+      {% elif current_user.user_type.value == 'employer' %}
+        <a href="/my/jobs" style="color: #3498db; text-decoration: none;">Мои вакансии</a>
+      {% endif %}
+      <span style="margin: 0 8px;">/</span>
+      <span>{{ application.job.title }}</span>
+    {% else %}
+      <span>Сообщения</span>
+    {% endif %}
+  </nav>
+</div>
+
+<!-- Заголовок страницы -->
+<div style="margin-bottom: 30px; text-align: left;">
+  {% if application %}
+    <h1 style="font-size: 28px; font-weight: 700; color: #2c3e50; margin: 0 0 8px 0;">
+      Чат по вакансии: {{ application.job.title }}
+    </h1>
+    <div style="color: #6c757d; font-size: 14px;">
+      Заявка №{{ application.id[:6] }}
+    </div>
   {% else %}
-    <p>Нет сообщений</p>
+    <h1 style="font-size: 28px; font-weight: 700; color: #2c3e50; margin: 0 0 8px 0;">
+      Сообщения
+    </h1>
+    <div style="color: #6c757d; font-size: 14px;">
+      Ваши личные сообщения
+    </div>
   {% endif %}
+</div>
+
   
-  <h3>Отправленные сообщения</h3>
-  {% if messages_sent %}
-    <ul>
-      {% for msg in messages_sent %}
-        <li>
-          <strong>К {{ msg.receiver.name }}:</strong> {{ msg.content }}
-          <small>({{ msg.created_at.strftime('%d.%m.%Y %H:%M') }})</small>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>Нет отправленных сообщений</p>
-  {% endif %}
+  <!-- Левая колонка - Чат с работодателем -->
+  <div>
+    
+    <!-- Статус заявки -->
+    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0; font-size: 18px; color: #2c3e50;">Статус заявки</h3>
+        
+        {% if application %}
+    {% if application is not none and application.status.value == 'pending' %}
+
+        <!-- код для pending статуса -->
+    {% elif application.status.value == 'approved' %}
+        <!-- код для approved статуса -->
+    {% else %}
+        <!-- код для других статусов -->
+    {% endif %}
+{% else %}
+    <!-- код когда нет заявления -->
+    <p>Нет активных заявлений</p>
+{% endif %}
+
+      </div>
+      
+      <!-- Детали статуса -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 14px;">
+        <div>
+          <div style="color: #6c757d; margin-bottom: 5px;">ФИО кандидата</div>
+          <div style="color: #2c3e50; font-weight: 500;">
+            {% if application.status.value in ['selected', 'working', 'completed'] %}
+              {{ current_user.name }}
+            {% else %}
+              Ожидается назначение
+            {% endif %}
+          </div>
+        </div>
+        <div>
+          <div style="color: #6c757d; margin-bottom: 5px;">Ожидаемая дата выхода</div>
+          <div style="color: #2c3e50; font-weight: 500;">
+            {% if application.expected_start_date %}
+              {{ application.expected_start_date.strftime('%d.%m.%Y') }}
+            {% else %}
+              Не указана
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Выбранные рекрутеры -->
+      <div style="margin-top: 20px;">
+        <div style="color: #6c757d; margin-bottom: 10px; font-size: 14px;">Выбранные рекрутеры</div>
+        {% if selected_recruiters %}
+          {% for recruiter in selected_recruiters %}
+            <div style="display: inline-block; background: #3498db; color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px; margin-right: 8px; margin-bottom: 8px;">
+              {{ recruiter.name }}
+            </div>
+          {% endfor %}
+        {% else %}
+          <div style="color: #6c757d; font-style: italic;">Рекрутеры еще не выбраны</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Интеграция существующего чата с работодателем -->
+    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; overflow: hidden; height: 600px; display: flex; flex-direction: column;">
+      
+      <!-- Заголовок чата -->
+      <div style="background: #f8f9fa; padding: 20px; border-bottom: 1px solid #e9ecef;">
+        <div style="display: flex; align-items: center; justify-content: between;">
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="width: 45px; height: 45px; background: #3498db; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+              <span style="color: white; font-size: 16px; font-weight: bold;">
+                {{ application.job.employer.name[0] }}
+              </span>
+            </div>
+            <div>
+              <h3 style="margin: 0; font-size: 18px; color: #2c3e50;">{{ application.job.employer.name }}</h3>
+              <div style="color: #28a745; font-size: 14px;">● Онлайн</div>
+            </div>
+          </div>
+          <!-- Добавляем кнопку для открытия полной страницы сообщений -->
+          <a href="/messages/to/{{ application.job.employer.id }}" 
+             style="background: #3498db; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 500;">
+            Открыть чат
+          </a>
+        </div>
+      </div>
+      
+      <!-- Встраиваем существующую систему чата -->
+      <div style="flex: 1; display: flex; flex-direction: column;">
+        <!-- Используем iframe или включение компонента чата -->
+        <!-- Вариант 1: Если у вас есть отдельная страница чата -->
+        <iframe 
+          src="/messages/embedded/{{ application.job.employer.id }}?compact=true" 
+          style="width: 100%; height: 100%; border: none; background: #fafafa;"
+          id="chat-frame">
+        </iframe>
+        
+        <!-- Вариант 2: Если можно включить компонент чата напрямую -->
+        <!--
+        {% if messages_component %}
+          {% include 'components/chat_window.html' with context %}
+        {% endif %}
+        -->
+        
+        <!-- Вариант 3: Загрузка чата через AJAX -->
+        <div id="chat-container" style="flex: 1; padding: 0;">
+          <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #6c757d;">
+            <div>
+              <div style="text-align: center; margin-bottom: 20px;">
+                <div style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 50%; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center;">
+                  💬
+                </div>
+                <div style="font-size: 16px; margin-bottom: 10px;">Начните общение</div>
+                <div style="font-size: 14px;">Нажмите "Открыть чат" для полного функционала</div>
+              </div>
+              <div style="text-align: center;">
+                <a href="/messages/to/{{ application.job.employer.id }}" 
+                   style="background: #3498db; color: white; padding: 12px 24px; border-radius: 24px; text-decoration: none; font-weight: 500;">
+                  💬 Написать сообщение
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  
+  <!-- Правая колонка - Дополнительная информация -->
+  <div>
+    
+    <!-- Контактное лицо -->
+    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; margin-bottom: 15px;">
+        <div style="width: 50px; height: 50px; background: #3498db; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+          <span style="color: white; font-size: 18px; font-weight: bold;">
+            {{ application.job.employer.name[0] }}
+          </span>
+        </div>
+        <div>
+          <div style="font-weight: 600; color: #2c3e50;">{{ application.job.employer.name }}</div>
+          <div style="color: #6c757d; font-size: 14px;">Работодатель</div>
+          <div style="color: #f39c12;">⭐⭐⭐⭐⭐</div>
+        </div>
+      </div>
+      
+      <div style="border-top: 1px solid #e9ecef; padding-top: 15px;">
+        <div style="font-size: 14px; color: #6c757d; margin-bottom: 10px;">
+          <strong>Должность:</strong> {{ application.job.title }}
+        </div>
+        {% if application.job.location %}
+        <div style="font-size: 14px; color: #6c757d; margin-bottom: 10px;">
+          <strong>Местоположение:</strong> {{ application.job.location }}
+        </div>
+        {% endif %}
+        {% if application.job.employment_type %}
+        <div style="font-size: 14px; color: #6c757d; margin-bottom: 10px;">
+          <strong>Тип занятости:</strong> {{ application.job.employment_type }}
+        </div>
+        {% endif %}
+        {% if application.job.salary_min and application.job.salary_max %}
+        <div style="font-size: 14px; color: #2980b9; font-weight: 600;">
+          💰 {{ "{:,}".format(application.job.salary_min) }} - {{ "{:,}".format(application.job.salary_max) }} {{ application.job.salary_currency or 'тенге' }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Ваше сопроводительное письмо -->
+    {% if application.cover_letter %}
+      <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+        <h4 style="margin: 0 0 15px 0; color: #2c3e50;">Сопроводительное письмо</h4>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; line-height: 1.6; color: #2c3e50; font-size: 14px;">
+          {{ application.cover_letter }}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Доходы -->
+    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+      <h4 style="margin: 0 0 15px 0; color: #2c3e50;">Доходы</h4>
+      
+      <div style="background: linear-gradient(135deg, #e8f5e8, #d4edda); border: 2px solid #28a745; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+        <div style="color: #155724; font-weight: 600; font-size: 14px; margin-bottom: 8px;">💰 Ваш доход:</div>
+        <div style="color: #28a745; font-size: 24px; font-weight: bold; margin-bottom: 5px;">
+          {{ "{:,}".format(recruiter_earnings) }} ₸
+        </div>
+        <div style="color: #6c757d; font-size: 12px;">70% от стоимости размещения</div>
+      </div>
+      
+      {% if application.status.value in ['selected', 'working', 'completed'] %}
+        <div style="background: #28a745; color: white; padding: 8px 12px; border-radius: 8px; font-size: 14px; text-align: center; font-weight: 600;">
+          ✅ Доход подтвержден
+        </div>
+      {% else %}
+        <div style="background: #ffc107; color: #856404; padding: 8px 12px; border-radius: 8px; font-size: 14px; text-align: center; font-weight: 600;">
+          ⏳ Потенциальный доход
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- История заявки -->
+    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+      <h4 style="margin: 0 0 15px 0; color: #2c3e50;">История заявки</h4>
+      
+      <div style="position: relative;">
+        <!-- Временная шкала -->
+        <div style="position: absolute; left: 12px; top: 20px; bottom: 0; width: 2px; background: #e9ecef;"></div>
+        
+        <!-- Создание заявки -->
+        <div style="display: flex; align-items: flex-start; margin-bottom: 15px; position: relative;">
+          <div style="width: 24px; height: 24px; background: #3498db; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; position: relative; z-index: 1;">
+            <span style="color: white; font-size: 10px; font-weight: bold;">1</span>
+          </div>
+          <div>
+            <div style="font-weight: 600; color: #2c3e50; font-size: 14px;">Заявка отправлена</div>
+            <div style="color: #6c757d; font-size: 12px;">{{ application.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+          </div>
+        </div>
+        
+        {% if application.status.value != 'pending' %}
+        <!-- Обновление статуса -->
+        <div style="display: flex; align-items: flex-start; margin-bottom: 15px; position: relative;">
+          <div style="width: 24px; height: 24px; background: #27ae60; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; position: relative; z-index: 1;">
+            <span style="color: white; font-size: 10px; font-weight: bold;">2</span>
+          </div>
+          <div>
+            <div style="font-weight: 600; color: #2c3e50; font-size: 14px;">
+              {% if application.status.value == 'selected' %}
+                Выбран для работы
+              {% elif application.status.value == 'working' %}
+                Начата работа
+              {% elif application.status.value == 'completed' %}
+                Работа завершена
+              {% elif application.status.value == 'rejected' %}
+                Заявка отклонена
+              {% endif %}
+            </div>
+            <div style="color: #6c757d; font-size: 12px;">
+              {% if application.updated_at %}
+                {{ application.updated_at.strftime('%d.%m.%Y %H:%M') }}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Документы (если есть) -->
+    <div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+      <h4 style="margin: 0 0 15px 0; color: #2c3e50;">Документы</h4>
+      
+      <!-- Пример документов -->
+      <div style="margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 32px; height: 32px; background: #dc3545; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+            <span style="color: white; font-size: 12px; font-weight: bold;">PDF</span>
+          </div>
+          <div style="flex: 1;">
+            <div style="color: #3498db; font-size: 14px; text-decoration: none; cursor: pointer;">
+              Договор на оказание услуг
+            </div>
+            <div style="color: #6c757d; font-size: 12px;">15.07.2021</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Файлы кандидатов -->
+      <div style="margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 32px; height: 32px; background: #2196f3; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+            <span style="color: white; font-size: 10px; font-weight: bold;">DOC</span>
+          </div>
+          <div style="flex: 1;">
+            <div style="color: #3498db; font-size: 14px; text-decoration: none; cursor: pointer;">
+              Резюме кандидата.docx
+            </div>
+            <div style="color: #6c757d; font-size: 12px;">110.5 КБ • 01.03.2025</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Действия -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <a href="/jobs/{{ application.job.id }}" 
+         style="background: #3498db; color: white; padding: 12px; text-align: center; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background 0.3s;"
+         onmouseover="this.style.background='#2980b9'"
+         onmouseout="this.style.background='#3498db'">
+        📄 Просмотреть вакансию
+      </a>
+      
+      <a href="/my/applications" 
+         style="background: #6c757d; color: white; padding: 12px; text-align: center; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background 0.3s;"
+         onmouseover="this.style.background='#5a6268'"
+         onmouseout="this.style.background='#6c757d'">
+        ← Назад к заявкам
+      </a>
+      
+      {% if application.status.value == 'completed' %}
+        <a href="/rate_employer/{{ application.job.employer.id }}" 
+           style="background: #f39c12; color: white; padding: 12px; text-align: center; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background 0.3s;"
+           onmouseover="this.style.background='#e67e22'"
+           onmouseout="this.style.background='#f39c12'">
+          ⭐ Оценить работодателя
+        </a>
+      {% endif %}
+    </div>
+
+  </div>
+  
+</div>
+
+<!-- JavaScript для интеграции с существующей системой чата -->
+<script>
+// Функция для загрузки чата через AJAX (если используется вариант 3)
+function loadChatMessages() {
+  fetch(`/api/messages/{{ application.job.employer.id }}?preview=true`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.messages && data.messages.length > 0) {
+        const container = document.getElementById('chat-container');
+        container.innerHTML = renderChatPreview(data.messages);
+      }
+    })
+    .catch(error => {
+      console.log('Chat preview not available:', error);
+    });
+}
+
+function renderChatPreview(messages) {
+  // Показываем только последние 3 сообщения
+  const recentMessages = messages.slice(-3);
+  let html = '<div style="padding: 20px; flex: 1; overflow-y: auto; background: #fafafa;">';
+  
+  recentMessages.forEach(message => {
+    const isUser = message.sender_id === '{{ current_user.id }}';
+    const time = new Date(message.created_at).toLocaleTimeString('ru-RU', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+    
+    html += `
+      <div style="display: flex; justify-content: ${isUser ? 'flex-end' : 'flex-start'}; margin-bottom: 15px;">
+        <div style="max-width: 70%; background: ${isUser ? '#3498db' : 'white'}; color: ${isUser ? 'white' : '#2c3e50'}; padding: 12px 16px; border-radius: 18px; ${isUser ? '' : 'border: 1px solid #e9ecef;'} box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+          <div style="font-size: 14px; line-height: 1.4;">
+            ${message.content}
+          </div>
+          <div style="font-size: 12px; color: ${isUser ? 'rgba(255,255,255,0.8)' : '#6c757d'}; margin-top: 8px;">${time}</div>
+        </div>
+      </div>
+    `;
+  });
+  
+  html += `
+    </div>
+    <div style="padding: 15px; border-top: 1px solid #e9ecef; background: white; text-align: center;">
+      <a href="/messages/to/{{ application.job.employer.id }}" 
+         style="background: #3498db; color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; font-size: 14px;">
+        Открыть полный чат
+      </a>
+    </div>
+  `;
+  
+  return html;
+}
+
+// Загружаем превью чата при загрузке страницы (если используется AJAX вариант)
+document.addEventListener('DOMContentLoaded', function() {
+  // Раскомментируйте, если хотите использовать AJAX загрузку
+  // loadChatMessages();
+  
+  // Если используется iframe, можно добавить обработчики событий
+  const chatFrame = document.getElementById('chat-frame');
+  if (chatFrame) {
+    chatFrame.onload = function() {
+      // Iframe загружен
+      console.log('Chat iframe loaded');
+    };
+  }
+});
+</script>
+
+</div>
+
 {% endblock %}

@@ -13,7 +13,13 @@ import logging
 from typing import Optional
 from datetime import datetime, timedelta
 import json
-import os  # ← Добавьте эту строку
+import os
+import shutil
+from fastapi import UploadFile, File
+from pydantic import BaseModel
+import uuid
+from fastapi.responses import JSONResponse, FileResponse
+
 
 
 logging.basicConfig(level=logging.INFO)
@@ -23,12 +29,15 @@ app.add_middleware(SessionMiddleware, secret_key="!secret")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+templates.env.auto_reload = True
 
 Base.metadata.create_all(bind=engine)
 
 # ОБНОВЛЕНО: Динамическое ценообразование
 PRICE_MULTIPLIER = 0.7  # 70% от средней зарплаты
 MIN_POSTING_PRICE = 3000.0  # Минимальная стоимость размещения
+RECRUITER_SHARE = 0.7  # 70% для рекрутера
+PLATFORM_SHARE = 0.3  # 30% для платформы
 
 def calculate_posting_price(salary_min: int, salary_max: int, multiplier: float = PRICE_MULTIPLIER) -> float:
     """
@@ -185,6 +194,124 @@ def get_job_analytics_data(db: Session, employer_id: str):
         "in_progress_jobs": len([j for j in jobs if j.status == JobStatus.IN_PROGRESS])
     }
 
+def get_chat_partner(application: Application, current_user: User):
+    """Получить собеседника в чате"""
+    if current_user.user_type == UserType.RECRUITER:
+        return application.job.employer
+    elif current_user.user_type == UserType.EMPLOYER:
+        return application.recruiter
+    return None
+
+def get_chat_messages(db: Session, application_id: str):
+    """Получить сообщения чата"""
+    return db.query(Message).filter(
+        Message.related_application_id == application_id
+    ).order_by(Message.created_at.asc()).all()
+
+def mark_messages_as_read(db: Session, user_id: str, application_id: str):
+    """Пометить сообщения как прочитанные"""
+    db.query(Message).filter(
+        Message.recipient_id == user_id,
+        Message.related_application_id == application_id,
+        Message.is_read == False
+    ).update({"is_read": True})
+    db.commit()
+
+def create_chat_message(db: Session, sender_id: str, receiver_id: str, content: str, application_id: str, files=None):
+    """Создать сообщение в чате"""
+    message = Message(
+        sender_id=sender_id,
+        recipient_id=receiver_id,
+        related_application_id=application_id,
+        content=content,
+        message_type=MessageType.TEXT if not files else MessageType.FILE,
+        is_read=False
+    )
+    
+    db.add(message)
+    db.commit()
+    db.refresh(message)
+    
+    return message
+
+
+@app.get("/profile", response_class=HTMLResponse)
+def profile(request: Request, db: Session = Depends(get_db), current_user: User = Depends(get_required_user)):
+    unread_count = get_unread_notifications_count(db, current_user.id)
+    
+    # Данные для рекрутеров
+    completed_jobs = []
+    if current_user.user_type == UserType.RECRUITER:
+        completed_applications = db.query(Application).filter(
+            Application.recruiter_id == current_user.id,
+            Application.status == ApplicationStatus.COMPLETED
+        ).all()
+        completed_jobs = [app.job for app in completed_applications]
+    
+    # Аналитика для работодателей
+    analytics = {}
+    if current_user.user_type == UserType.EMPLOYER:
+        analytics = {
+            "total_jobs": db.query(Job).filter(Job.employer_id == current_user.id).count(),
+            "completed_jobs": db.query(Job).filter(
+                Job.employer_id == current_user.id,
+                Job.status == JobStatus.COMPLETED
+            ).count(),
+            "success_rate": 0
+        }
+        if analytics["total_jobs"] > 0:
+            analytics["success_rate"] = round((analytics["completed_jobs"] / analytics["total_jobs"]) * 100)
+    
+    return templates.TemplateResponse("recruiter_profile.html", {
+        "request": request,
+        "current_user": current_user,
+        "unread_count": unread_count,
+        "completed_jobs": completed_jobs,
+        "analytics": analytics
+    })
+
+@app.post("/profile")
+def post_profile(
+    request: Request,
+    name: str = Form(...),
+    phone: str = Form(""),
+    location: str = Form(""),
+    # Поля для рекрутера
+    experience: str = Form(""),
+    specialization: str = Form(""),
+    portfolio_url: str = Form(""),
+    resume_url: str = Form(""),
+    # Поля для работодателя
+    company_name: str = Form(""),
+    company_description: str = Form(""),
+    company_website: str = Form(""),
+    company_details: str = Form(""),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_required_user)
+):
+    user = db.query(User).filter(User.id == current_user.id).first()
+    
+    # Общие поля
+    user.name = name
+    user.phone = phone
+    user.location = location
+    
+    # Поля в зависимости от роли
+    if current_user.user_type == UserType.RECRUITER:
+        user.experience = experience
+        user.specialization = specialization
+        user.portfolio_url = portfolio_url
+        user.resume_url = resume_url
+    
+    elif current_user.user_type == UserType.EMPLOYER:
+        user.company_name = company_name
+        user.company_description = company_description
+        user.company_website = company_website
+        user.company_details = company_details
+    
+    db.commit()
+    return RedirectResponse("/profile?updated=1", status_code=status.HTTP_303_SEE_OTHER)
+
 # Создание дефолтного админа при запуске
 @app.on_event("startup")
 async def create_default_admin():
@@ -297,57 +424,6 @@ def faq(request: Request, current_user: Optional[User] = Depends(get_current_use
     if current_user:
         unread_count = get_unread_notifications_count(db, current_user.id)
     return templates.TemplateResponse("faq.html", {"request": request, "current_user": current_user, "unread_count": unread_count})
-
-@app.get("/profile", response_class=HTMLResponse)
-def get_profile(request: Request, db: Session = Depends(get_db), current_user: User = Depends(get_required_user)):
-    unread_count = get_unread_notifications_count(db, current_user.id)
-    
-    completed_jobs = []
-    if current_user.user_type == UserType.RECRUITER:
-        completed_applications = db.query(Application).filter(
-            Application.recruiter_id == current_user.id,
-            Application.status == ApplicationStatus.COMPLETED
-        ).all()
-        completed_jobs = [app.job for app in completed_applications]
-    elif current_user.user_type == UserType.EMPLOYER:
-        completed_jobs = db.query(Job).filter(
-            Job.employer_id == current_user.id, 
-            Job.status == JobStatus.COMPLETED
-        ).all()
-    
-    return templates.TemplateResponse("profile.html", {
-        "request": request,
-        "current_user": current_user,
-        "unread_count": unread_count,
-        "completed_jobs": completed_jobs
-    })
-
-@app.post("/profile")
-def post_profile(
-    request: Request,
-    name: str = Form(...),
-    experience: str = Form(""),
-    specialization: str = Form(""),
-    portfolio_url: str = Form(""),
-    resume_url: str = Form(""),
-    company: str = Form(""),
-    location: str = Form(""),
-    phone: str = Form(""),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_required_user)
-):
-    user = db.query(User).filter(User.id == current_user.id).first()
-    user.name = name
-    user.experience = experience
-    user.specialization = specialization
-    user.portfolio_url = portfolio_url
-    user.resume_url = resume_url
-    user.company = company
-    user.location = location
-    user.phone = phone
-    
-    db.commit()
-    return RedirectResponse("/profile", status_code=status.HTTP_303_SEE_OTHER)
 
 # ======================
 # АДМИН ПАНЕЛЬ
@@ -470,7 +546,7 @@ def post_new_job(
     benefits: str = Form(""),
     location: str = Form(""),
     employment_type: str = Form("full-time"),
-    experience_level: str = Form("middle"),
+    experience_level: str = Form(""),
     salary_min: str = Form(...),
     salary_max: str = Form(...),
     db: Session = Depends(get_db),
@@ -605,7 +681,168 @@ def process_job_payment(
     
     return RedirectResponse("/my/jobs?payment_success=1", status_code=status.HTTP_303_SEE_OTHER)
 
-# СПИСОК ВАКАНСИЙ
+# Pydantic модели для API
+class MessageCreate(BaseModel):
+    application_id: str
+    content: str
+    message_type: str = "text"
+
+class MessageResponse(BaseModel):
+    id: str
+    content: str
+    sender_name: str
+    timestamp: str
+    is_own_message: bool
+
+@app.post("/api/send_message")
+async def send_message_api(
+    message_data: MessageCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_required_user)
+):
+    try:
+        application = db.query(Application).filter(Application.id == message_data.application_id).first()
+        if not application:
+            return {"success": False, "error": "Заявка не найдена"}
+        if current_user.user_type == UserType.RECRUITER:
+            if application.recruiter_id != current_user.id:
+                return {"success": False, "error": "Нет доступа к этой заявке"}
+            recipient_id = application.job.employer_id
+        elif current_user.user_type == UserType.EMPLOYER:
+            if application.job.employer_id != current_user.id:
+                return {"success": False, "error": "Нет доступа к этой заявке"}
+            recipient_id = application.recruiter_id
+        else:
+            return {"success": False, "error": "Недостаточно прав"}
+        new_message = Message(
+            sender_id=current_user.id,
+            recipient_id=recipient_id,
+            related_application_id=message_data.application_id,
+            content=message_data.content,
+            message_type=MessageType.TEXT if message_data.message_type == "text" else MessageType(message_data.message_type),
+            is_read=False
+        )
+        db.add(new_message)
+        db.commit()
+        db.refresh(new_message)
+        # ДОБАВЬТЕ ЭТО: Создание уведомления о новом сообщении
+        job_title = application.job.title if application.job else "вакансию"
+        create_notification(
+            db,
+            recipient_id,
+            NotificationType.NEW_MESSAGE,
+            f"Новое сообщение от {current_user.name}",
+            f"Получено сообщение по заявке на '{job_title}': {message_data.content[:50]}{'...' if len(message_data.content) > 50 else ''}",
+            related_application_id=message_data.application_id,
+            related_user_id=current_user.id
+        )
+        
+        return {"success": True, "message_id": new_message.id}
+    except Exception as e:
+        print(f"[ERROR] Ошибка отправки сообщения: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.get("/api/get_messages/{application_id}")
+async def get_messages_by_application(
+    application_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_required_user)
+):
+    try:
+        application = db.query(Application).filter(Application.id == application_id).first()
+        if not application:
+            return {"success": False, "messages": []}
+        has_access = False
+        if current_user.user_type == UserType.RECRUITER:
+            has_access = application.recruiter_id == current_user.id
+        elif current_user.user_type == UserType.EMPLOYER:
+            has_access = application.job.employer_id == current_user.id
+        elif current_user.user_type == UserType.ADMIN:
+            has_access = True
+        if not has_access:
+            return {"success": False, "messages": []}
+        messages = db.query(Message).filter(Message.related_application_id == application_id).order_by(Message.created_at.asc()).all()
+        formatted_messages = []
+        for message in messages:
+            formatted_messages.append({
+                "id": message.id,
+                "sender_id": message.sender_id,
+                "recipient_id": message.recipient_id,
+                "content": message.content,
+                "created_at": message.created_at.isoformat() if message.created_at else "",
+                "is_read": message.is_read
+            })
+        return {"success": True, "messages": formatted_messages}
+    except Exception as e:
+        print(f"[ERROR] Ошибка получения сообщений: {e}")
+        return {"success": False, "messages": []}
+
+@app.on_event("startup")
+async def startup_event():
+    print("Доступные маршруты:")
+    for route in app.routes:
+        if hasattr(route, 'methods') and hasattr(route, 'path'):
+            methods = list(route.methods) if route.methods else []
+            print(f"  {methods} {route.path}")
+
+# загрузка файлов в чате
+@app.post("/api/upload_chat_file")
+async def upload_chat_file_api(
+    application_id: str = Form(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_required_user)
+):
+    try:
+        application = db.query(Application).filter(Application.id == application_id).first()
+        if not application:
+            return {"success": False, "error": "Заявка не найдена"}
+        has_access = False
+        recipient_id = None
+        if current_user.user_type == UserType.RECRUITER:
+            has_access = application.recruiter_id == current_user.id
+            recipient_id = application.job.employer_id
+        elif current_user.user_type == UserType.EMPLOYER:
+            has_access = application.job.employer_id == current_user.id
+            recipient_id = application.recruiter_id
+        if not has_access:
+            return {"success": False, "error": "Нет доступа"}
+        upload_dir = "static/chat_files"
+        os.makedirs(upload_dir, exist_ok=True)
+        import uuid
+        file_extension = os.path.splitext(file.filename)[1]
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        file_path = os.path.join(upload_dir, unique_filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        new_message = Message(
+            sender_id=current_user.id,
+            recipient_id=recipient_id,
+            related_application_id=application_id,
+            content=f"📎 Файл: {file.filename}",
+            message_type=MessageType.FILE,
+            is_read=False
+        )
+        db.add(new_message)
+        db.commit()
+        db.refresh(new_message)
+        chat_file = ChatFile(
+            message_id=new_message.id,
+            original_name=file.filename,
+            file_path=file_path,
+            file_size=file.size,
+            mime_type=file.content_type,
+            is_uploaded=True
+        )
+        db.add(chat_file)
+        db.commit()
+        return {"success": True, "message_id": new_message.id}
+    except Exception as e:
+        print(f"[ERROR] Ошибка загрузки файла: {e}")
+        return {"success": False, "error": str(e)}
+
+
+# СПИСОК ВАКАНСИЙ - ИСПРАВЛЕН
 @app.get("/jobs", response_class=HTMLResponse)
 def list_jobs(
     request: Request,
@@ -619,6 +856,13 @@ def list_jobs(
     unread_count = 0
     if current_user:
         unread_count = get_unread_notifications_count(db, current_user.id)
+    
+    # Добавляем отладочную печать
+    print(f"[DEBUG] Фильтры получены:")
+    print(f"q: '{q}'")
+    print(f"salary_min: '{salary_min}' (isdigit: {salary_min.isdigit() if salary_min else False})")
+    print(f"salary_max: '{salary_max}' (isdigit: {salary_max.isdigit() if salary_max else False})")
+    print(f"status: '{status}'")
     
     # ОБНОВЛЕННАЯ ЛОГИКА: Показываем вакансии с менее 3 выбранными рекрутерами
     if current_user and current_user.user_type == UserType.ADMIN:
@@ -650,17 +894,24 @@ def list_jobs(
             )
         )
 
+    # Применяем фильтры
     if q and q.strip():
         search = f"%{q}%"
         query = query.filter(Job.title.ilike(search) | Job.description.ilike(search))
+        print(f"[DEBUG] Применен поисковый фильтр: {search}")
     
     if salary_min and salary_min.isdigit():
-        query = query.filter(Job.salary_min >= int(salary_min))
+        min_sal = int(salary_min)
+        query = query.filter(Job.salary_min >= min_sal)
+        print(f"[DEBUG] Применен фильтр минимальной зарплаты: {min_sal}")
     
     if salary_max and salary_max.isdigit():
-        query = query.filter(Job.salary_max <= int(salary_max))
+        max_sal = int(salary_max)
+        query = query.filter(Job.salary_max <= max_sal)
+        print(f"[DEBUG] Применен фильтр максимальной зарплаты: {max_sal}")
 
     jobs = query.order_by(Job.created_at.desc()).all()
+    print(f"[DEBUG] Найдено вакансий после фильтрации: {len(jobs)}")
 
     jobs_with_status = []
     for job in jobs:
@@ -726,7 +977,6 @@ def list_jobs(
         "salary_max": salary_max,
         "status": status
     })
-
 
 @app.get("/jobs/{job_id}/apply", response_class=HTMLResponse)
 def get_apply(job_id: str, request: Request, db: Session = Depends(get_db), current_user: User = Depends(get_required_user)):
@@ -870,15 +1120,29 @@ def my_jobs(request: Request, db: Session = Depends(get_db), current_user: User 
     for job in jobs:
         applications = db.query(Application).filter(Application.job_id == job.id).all()
         apps_data = []
+        
+        # НОВОЕ: Рассчитываем стоимость вакансии для показа работодателю
+        posting_price = calculate_posting_price(job.salary_min or 0, job.salary_max or 0)
+        platform_fee = int(posting_price * PLATFORM_SHARE)
+        recruiter_payment_per_person = int(posting_price * RECRUITER_SHARE)
+        
         for app in applications:
             avg_rating = get_recruiter_avg_rating(db, app.recruiter_id)
             ratings_count = get_recruiter_ratings_count(db, app.recruiter_id)
             apps_data.append({
                 "app": app, 
                 "avg_rating": avg_rating, 
-                "ratings_count": ratings_count
+                "ratings_count": ratings_count,
+                "recruiter_payment": recruiter_payment_per_person  # Доход каждого рекрутера
             })
-        jobs_data.append({"job": job, "applications": apps_data})
+        
+        jobs_data.append({
+            "job": job, 
+            "applications": apps_data,
+            "posting_price": posting_price,  # Полная стоимость для работодателя
+            "platform_fee": platform_fee,   # Комиссия платформы
+            "recruiter_payment_per_person": recruiter_payment_per_person  # Выплата на рекрутера
+        })
     
     analytics = get_job_analytics_data(db, current_user.id)
     
@@ -1005,58 +1269,7 @@ def change_application_status(
     
     return RedirectResponse("/my/jobs", status_code=status.HTTP_303_SEE_OTHER)
 
-
-
-@app.post("/applications/{application_id}/status")
-def change_application_status(
-    application_id: str,
-    new_status: ApplicationStatus = Form(...),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_required_user)
-):
-    application = db.query(Application).filter(Application.id == application_id).first()
-    if not application:
-        raise HTTPException(status_code=404, detail="Отклик не найден")
-    
-    job = db.query(Job).filter(Job.id == application.job_id, Job.employer_id == current_user.id).first()
-    if not job:
-        raise HTTPException(status_code=403, detail="Доступ запрещен")
-    
-    old_status = application.status
-    application.status = new_status
-    
-    if new_status == ApplicationStatus.COMPLETED:
-        job.winner_application_id = application_id
-        if job.status != JobStatus.COMPLETED:
-            job.status = JobStatus.COMPLETED
-            job.status_reason = "Найден подходящий кандидат"
-            calculate_job_analytics(db, job)
-    
-    db.commit()
-    
-    auto_update_job_status(db, job)
-    
-    status_messages = {
-        ApplicationStatus.PENDING: "на рассмотрении",
-        ApplicationStatus.SELECTED: "выбран для работы",
-        ApplicationStatus.WORKING: "работает над вакансией", 
-        ApplicationStatus.COMPLETED: "успешно завершил работу",
-        ApplicationStatus.REJECTED: "отклонен"
-    }
-    
-    create_notification(
-        db,
-        application.recruiter_id,
-        NotificationType.APPLICATION_STATUS_CHANGE,
-        f"Изменен статус вашего отклика",
-        f"Ваш отклик на вакансию '{job.title}' {status_messages[new_status]}",
-        related_job_id=job.id,
-        related_user_id=current_user.id,
-        related_application_id=application_id
-    )
-    
-    return RedirectResponse("/my/jobs", status_code=status.HTTP_303_SEE_OTHER)
-
+# ОБНОВЛЕНО: Мои отклики с раздельным отображением стоимости для ролей
 @app.get("/my/applications", response_class=HTMLResponse)
 def my_applications(
     request: Request, 
@@ -1080,7 +1293,34 @@ def my_applications(
     else:
         applications = query.order_by(Application.created_at.desc()).all()
     
-    total_applications = len(applications)
+    # НОВОЕ: Добавляем расчет дохода с учетом роли пользователя
+    applications_with_earnings = []
+    total_potential_earnings = 0
+    
+    for app in applications:
+        # Рассчитываем стоимость размещения вакансии
+        posting_price = calculate_posting_price(
+            app.job.salary_min or 0, 
+            app.job.salary_max or 0
+        )
+        
+        # НОВАЯ ЛОГИКА: рекрутеры видят только свою долю (70%)
+        recruiter_earnings = int(posting_price * RECRUITER_SHARE)
+        
+        applications_with_earnings.append({
+            'application': app,
+            'job': app.job,
+            # ВАЖНО: Рекрутеры НЕ видят полную стоимость
+            'recruiter_earnings': recruiter_earnings,  # Только их доля
+            'show_full_price': False  # Флаг для шаблона
+        })
+        
+        # Считаем общий потенциальный доход только от выбранных/работающих заявок
+        if app.status in [ApplicationStatus.SELECTED, ApplicationStatus.WORKING, ApplicationStatus.COMPLETED]:
+            total_potential_earnings += recruiter_earnings
+    
+    # Статистика
+    total_applications = len(applications_with_earnings)
     pending_applications = len([app for app in applications if app.status == ApplicationStatus.PENDING])
     selected_applications = len([app for app in applications if app.status == ApplicationStatus.SELECTED])
     working_applications = len([app for app in applications if app.status == ApplicationStatus.WORKING])
@@ -1089,7 +1329,7 @@ def my_applications(
     
     return templates.TemplateResponse("my_applications.html", {
         "request": request,
-        "applications": applications,
+        "applications": applications_with_earnings,
         "current_user": current_user,
         "unread_count": unread_count,
         "status": status,
@@ -1099,8 +1339,292 @@ def my_applications(
         "selected_applications": selected_applications,
         "working_applications": working_applications,
         "completed_applications": completed_applications,
-        "rejected_applications": rejected_applications
+        "rejected_applications": rejected_applications,
+        "total_potential_earnings": total_potential_earnings,
+        "user_role": "recruiter"  # Для шаблона
     })
+
+# ======================
+# НОВЫЕ МАРШРУТЫ ДЛЯ ДЕТАЛЬНОЙ СТРАНИЦЫ ЗАЯВОК
+# ======================
+
+@app.get("/applications/{application_id}", response_class=HTMLResponse)
+def application_detail(
+    application_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_required_user)
+):
+    """Детальная страница заявки/отклика"""
+    
+    # Получаем заявку
+    application = db.query(Application).filter(Application.id == application_id).first()
+    if not application:
+        raise HTTPException(status_code=404, detail="Заявка не найдена")
+    
+    # Проверяем права доступа
+    if current_user.user_type == UserType.RECRUITER:
+        # Рекрутер может видеть только свои заявки
+        if application.recruiter_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Доступ запрещен")
+    elif current_user.user_type == UserType.EMPLOYER:
+        # Работодатель может видеть заявки на свои вакансии
+        if application.job.employer_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Доступ запрещен")
+    elif current_user.user_type == UserType.ADMIN:
+        # Админ может видеть все
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+    
+    # Получаем дополнительную информацию
+    job = application.job
+    
+    # Рассчитываем доходы рекрутера
+    posting_price = calculate_posting_price(job.salary_min or 0, job.salary_max or 0)
+    recruiter_earnings = int(posting_price * RECRUITER_SHARE)
+    
+    # Получаем выбранных рекрутеров для этой вакансии
+    selected_applications = db.query(Application).filter(
+        Application.job_id == job.id,
+        Application.status.in_([ApplicationStatus.SELECTED, ApplicationStatus.WORKING])
+    ).all()
+    selected_recruiters = [app.recruiter for app in selected_applications]
+    
+    unread_count = get_unread_notifications_count(db, current_user.id)
+    
+        # ВАЖНО: Получаем сообщения для чата
+    chat_messages = db.query(Message).filter(
+        Message.related_application_id == application_id
+    ).order_by(Message.created_at.asc()).all()
+    
+    # Получаем файлы чата
+    chat_documents = db.query(ChatFile).join(Message).filter(
+        Message.related_application_id == application_id,
+        Message.message_type == MessageType.FILE
+    ).all()
+    
+    unread_count = get_unread_notifications_count(db, current_user.id)
+    
+    return templates.TemplateResponse("application_detailed.html", {
+        "request": request,
+        "current_user": current_user,
+        "unread_count": unread_count,
+        "application": application,
+        "job": job,
+        "recruiter_earnings": recruiter_earnings,
+        "selected_recruiters": selected_recruiters,
+        "posting_price": posting_price,
+        "chat_messages": chat_messages,      # ВАЖНО: переименовано с messages
+        "chat_documents": chat_documents,    # ВАЖНО: переименовано с documents  
+        "is_typing": False
+    })
+
+
+@app.get("/my/applications/{application_id}", response_class=HTMLResponse)
+def my_application_detail(
+    application_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_required_user)
+):
+    """Редирект для совместимости с URL /my/applications/{id}"""
+    return RedirectResponse(f"/applications/{application_id}", status_code=status.HTTP_301_MOVED_PERMANENTLY)
+
+@app.get("/jobs/{job_id}/applications/{application_id}", response_class=HTMLResponse) 
+def job_application_detail(
+    job_id: str,
+    application_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_required_user)
+):
+    """Детальная страница заявки в контексте конкретной вакансии (для работодателей)"""
+    
+    # Проверяем что пользователь - работодатель этой вакансии
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Вакансия не найдена")
+        
+    if current_user.user_type != UserType.ADMIN and job.employer_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+    
+    # Получаем заявку
+    application = db.query(Application).filter(
+        Application.id == application_id,
+        Application.job_id == job_id
+    ).first()
+    
+    if not application:
+        raise HTTPException(status_code=404, detail="Заявка не найдена")
+    
+    # Рассчитываем доходы
+    posting_price = calculate_posting_price(job.salary_min or 0, job.salary_max or 0)
+    recruiter_earnings = int(posting_price * RECRUITER_SHARE)
+    
+    # Получаем выбранных рекрутеров
+    selected_applications = db.query(Application).filter(
+        Application.job_id == job.id,
+        Application.status.in_([ApplicationStatus.SELECTED, ApplicationStatus.WORKING])
+    ).all()
+    selected_recruiters = [app.recruiter for app in selected_applications]
+    
+    # Получаем рейтинг рекрутера
+    recruiter_rating = get_recruiter_avg_rating(db, application.recruiter_id)
+    recruiter_ratings_count = get_recruiter_ratings_count(db, application.recruiter_id)
+    
+    unread_count = get_unread_notifications_count(db, current_user.id)
+    
+    return templates.TemplateResponse("application_detailed.html", {
+        "request": request,
+        "current_user": current_user,
+        "unread_count": unread_count,
+        "application": application,
+        "job": job,
+        "recruiter_earnings": recruiter_earnings,
+        "selected_recruiters": selected_recruiters,
+        "posting_price": posting_price,
+        "recruiter_rating": recruiter_rating,
+        "recruiter_ratings_count": recruiter_ratings_count,
+        "is_employer_view": True  # Флаг что это просмотр работодателя
+    })
+
+# --- МАРШРУТЫ ДЛЯ ЧАТА ---
+
+@app.get("/applications/{application_id}/messages", response_class=HTMLResponse)
+def application_chat(
+    application_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_required_user)
+):
+    application = db.query(Application).filter(Application.id == application_id).first()
+    if not application:
+        raise HTTPException(status_code=404, detail="Заявка не найдена")
+    if current_user.user_type == UserType.RECRUITER and application.recruiter_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+    if current_user.user_type == UserType.EMPLOYER and application.job.employer_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+    # Админ имеет доступ
+    partner = get_chat_partner(application, current_user)
+    messages = get_chat_messages(db, application_id)
+    mark_messages_as_read(db, current_user.id, application_id)
+    unread_count = get_unread_notifications_count(db, current_user.id)
+    recruiter_earnings = 0
+    if current_user.user_type == UserType.RECRUITER:
+        posting_price = calculate_posting_price(application.job.salary_min or 0, application.job.salary_max or 0)
+        recruiter_earnings = int(posting_price * RECRUITER_SHARE)
+    selected_applications = db.query(Application).filter(
+        Application.job_id == application.job.id,
+        Application.status.in_([ApplicationStatus.SELECTED, ApplicationStatus.WORKING])
+    ).all()
+    selected_recruiters = [app.recruiter for app in selected_applications]
+    return templates.TemplateResponse("application_chat.html", {
+        "request": request,
+        "current_user": current_user,
+        "unread_count": unread_count,
+        "application": application,
+        "conversation_partner": partner,
+        "messages": messages,
+        "recruiter_earnings": recruiter_earnings,
+        "selected_recruiters": selected_recruiters,
+    })
+
+@app.post("/applications/{application_id}/messages/send")
+async def send_chat_message(
+    application_id: str,
+    content: str = Form(...),
+    files: list = File(default=[]),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_required_user)
+):
+    application = db.query(Application).filter(Application.id == application_id).first()
+    if not application:
+        raise HTTPException(status_code=404, detail="Заявка не найдена")
+    # Проверка доступа
+    if current_user.user_type == UserType.RECRUITER and application.recruiter_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+    if current_user.user_type == UserType.EMPLOYER and application.job.employer_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+    receiver_id = application.job.employer_id if current_user.user_type == UserType.RECRUITER else application.recruiter_id
+    if not content.strip() and not files:
+        raise HTTPException(status_code=400, detail="Сообщение не может быть пустым")
+    valid_files = [f for f in files if hasattr(f, "filename") and f.filename]
+    message = create_chat_message(
+        db=db,
+        sender_id=current_user.id,
+        receiver_id=receiver_id,
+        content=content,
+        application_id=application_id,
+        files=valid_files
+    )
+    # ДОБАВЬТЕ ЭТО: Создание уведомления о новом сообщении
+    job_title = application.job.title if application.job else "вакансию"
+    create_notification(
+        db,
+        receiver_id,
+        NotificationType.NEW_MESSAGE,
+        f"Новое сообщение от {current_user.name}",
+        f"Получено сообщение по заявке на '{job_title}': {content[:50]}{'...' if len(content) > 50 else ''}",
+        related_application_id=application_id,
+        related_user_id=current_user.id
+    )
+    
+    return {"status": "success", "message_id": message.id}
+
+@app.get("/chat/files/{file_id}")
+async def download_chat_file(
+    file_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_required_user)
+):
+    chat_file = db.query(ChatFile).filter(ChatFile.id == file_id).first()
+    if not chat_file:
+        raise HTTPException(status_code=404, detail="Файл не найден")
+    message = db.query(Message).filter(Message.id == chat_file.message_id).first()
+    if not message:
+        raise HTTPException(status_code=404, detail="Сообщение не найдено")
+    if current_user.id not in [message.sender_id, message.receiver_id] and current_user.user_type != UserType.ADMIN:
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+    if not os.path.exists(chat_file.file_path):
+        raise HTTPException(status_code=404, detail="Файл не найден на сервере")
+    return FileResponse(
+        path=chat_file.file_path,
+        filename=chat_file.original_name,
+        media_type=chat_file.mime_type
+    )
+
+@app.post("/applications/{application_id}/messages/mark-read")
+def mark_chat_messages_read(
+    application_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_required_user)
+):
+    application = db.query(Application).filter(Application.id == application_id).first()
+    if not application:
+        raise HTTPException(status_code=404, detail="Заявка не найдена")
+    if (current_user.user_type == UserType.RECRUITER and application.recruiter_id != current_user.id) or \
+       (current_user.user_type == UserType.EMPLOYER and application.job.employer_id != current_user.id):
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+    mark_messages_as_read(db, current_user.id, application_id)
+    return {"status": "success"}
+
+@app.get("/applications/{application_id}/messages/unread-count")
+def get_unread_messages_count(
+    application_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_required_user)
+):
+    count = db.query(Message).filter(
+        Message.receiver_id == current_user.id,
+        Message.related_application_id == application_id,
+        Message.is_read == False
+    ).count()
+    return {"unread_count": count}
+
+# ======================
+# ОСТАЛЬНЫЕ МАРШРУТЫ - ИСПРАВЛЕНО
+# ======================
 
 @app.get("/messages", response_class=HTMLResponse)
 def messages(request: Request, db: Session = Depends(get_db), current_user: User = Depends(get_required_user)):
@@ -1110,13 +1634,19 @@ def messages(request: Request, db: Session = Depends(get_db), current_user: User
     
     users = db.query(User).filter(User.id != current_user.id).all()
     
+    # ИСПРАВЛЕНО: Добавляем отсутствующие переменные в контекст
     return templates.TemplateResponse("messages.html", {
         "request": request, 
         "messages_sent": messages_sent, 
         "messages_received": messages_received, 
         "current_user": current_user,
         "users": users,
-        "unread_count": unread_count
+        "unread_count": unread_count,
+        # Добавляем переменные для совместимости с шаблоном
+        "messages": messages_received,  # для общего списка сообщений
+        "conversation": None,  # если есть активная беседа
+        "application": None,
+
     })
 
 @app.post("/messages/send")

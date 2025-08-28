@@ -1,25 +1,209 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2>Профиль рекрутера: {{ recruiter.name }}</h2>
-  
-  {% if avg_rating %}
-    <p><strong>Средний рейтинг:</strong> {{ avg_rating }}/5.0 ({{ ratings_count }} оценок)</p>
-  {% else %}
-    <p>Пока нет оценок</p>
-  {% endif %}
-  
-  <h3>Отзывы:</h3>
-  {% for rating in ratings %}
-    <div>
-      <strong>{{ rating.rating }}/5</strong> — {{ rating.comment or "Без комментария" }}
-      <small>({{ rating.created_at.strftime('%d.%m.%Y') }})</small>
+<div class="container" style="max-width: 800px;">
+    
+    <!-- Заголовок в зависимости от роли -->
+    {% if current_user.user_type.value == 'employer' %}
+        <h2>👔 Профиль работодателя: {{ current_user.name }}</h2>
+    {% elif current_user.user_type.value == 'recruiter' %}
+        <h2>🎯 Профиль рекрутера: {{ current_user.name }}</h2>
+    {% else %}
+        <h2>👤 Профиль: {{ current_user.name }}</h2>
+    {% endif %}
+    
+    <!-- Цветная шапка в зависимости от роли -->
+    {% if current_user.user_type.value == 'employer' %}
+        <div style="background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+    {% elif current_user.user_type.value == 'recruiter' %}
+        <div style="background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+    {% else %}
+        <div style="background: linear-gradient(135deg, #6c757d, #495057); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+    {% endif %}
+        <h3 style="margin: 0 0 10px 0;">{{ current_user.name }}</h3>
+        <div style="opacity: 0.9; font-size: 16px;">
+            {% if current_user.user_type.value == 'employer' %}
+                🏢 Работодатель
+            {% elif current_user.user_type.value == 'recruiter' %}
+                🎯 Рекрутер
+            {% elif current_user.user_type.value == 'admin' %}
+                ⚙️ Администратор
+            {% endif %}
+            • 📅 Зарегистрирован {{ current_user.created_at.strftime('%d.%m.%Y') }}
+        </div>
     </div>
-    <hr>
-  {% else %}
-    <p>Нет отзывов</p>
-  {% endfor %}
-  
-  {% if current_user and current_user.user_type == 'employer' %}
-    <a href="/rate_recruiter/{{ recruiter.id }}">Оценить рекрутера</a>
-  {% endif %}
+
+   {% if request.query_params.get('updated') %}
+    <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #155724;">
+        ✅ Профиль успешно обновлен!
+    </div>
+{% endif %}
+
+
+    <form method="post" style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        
+        <!-- Основная информация (для всех) -->
+        <div style="margin-bottom: 30px;">
+            <h4 style="color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">
+                📋 Основная информация
+            </h4>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px;">Имя и фамилия:</label>
+                <input type="text" name="name" value="{{ current_user.name }}" required 
+                       style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 16px;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Телефон:</label>
+                    <input type="text" name="phone" value="{{ current_user.phone or '' }}" 
+                           style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Местоположение:</label>
+                    <input type="text" name="location" value="{{ current_user.location or '' }}" 
+                           style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Поля для рекрутеров -->
+        {% if current_user.user_type.value == 'recruiter' %}
+        <div style="margin-bottom: 30px;">
+            <h4 style="color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">
+                🎯 Профессиональная информация
+            </h4>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px;">Специализация:</label>
+                <input type="text" name="specialization" value="{{ current_user.specialization or '' }}" 
+                       placeholder="IT рекрутинг, Executive Search, Mass recruitment"
+                       style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px;">Опыт работы:</label>
+                <textarea name="experience" rows="4" 
+                          placeholder="Опишите ваш опыт работы в сфере рекрутинга..."
+                          style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; resize: vertical;">{{ current_user.experience or '' }}</textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Ссылка на портфолио:</label>
+                    <input type="url" name="portfolio_url" value="{{ current_user.portfolio_url or '' }}" 
+                           placeholder="https://portfolio.example.com"
+                           style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                </div>
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Ссылка на резюме:</label>
+                    <input type="url" name="resume_url" value="{{ current_user.resume_url or '' }}" 
+                           placeholder="https://resume.example.com"
+                           style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Поля для работодателей -->
+        {% if current_user.user_type.value == 'employer' %}
+        <div style="margin-bottom: 30px;">
+            <h4 style="color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">
+                🏢 Информация о компании
+            </h4>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px;">Название компании: *</label>
+                <input type="text" name="company_name" value="{{ current_user.company_name or '' }}" required
+                       style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 16px;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px;">Описание компании:</label>
+                <textarea name="company_description" rows="4" 
+                          style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; resize: vertical;">{{ current_user.company_description or '' }}</textarea>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px;">Сайт или социальные сети:</label>
+                <input type="url" name="company_website" value="{{ current_user.company_website or '' }}" 
+                       placeholder="https://example.com"
+                       style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px;">Реквизиты компании:</label>
+                <textarea name="company_details" rows="6" 
+                          placeholder="БИН/ИИН: 123456789012&#10;Банк: Kaspi Bank&#10;Счет: KZ123456789012345678&#10;Адрес: г. Алматы, ул. Примерная 123"
+                          style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; resize: vertical; font-family: monospace;">{{ current_user.company_details or '' }}</textarea>
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="text-align: center; padding-top: 20px; border-top: 2px solid #e9ecef;">
+            <!-- РЕШЕНИЕ 1: Отдельные кнопки для каждой роли -->
+            {% if current_user.user_type.value == 'employer' %}
+                <button type="submit" style="background: #007bff; color: white; padding: 15px 40px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#0056b3'" onmouseout="this.style.background='#007bff'">
+                    💾 Сохранить изменения
+                </button>
+            {% else %}
+                <button type="submit" style="background: #28a745; color: white; padding: 15px 40px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#218838'" onmouseout="this.style.background='#28a745'">
+                    💾 Сохранить изменения
+                </button>
+            {% endif %}
+        </div>
+    </form>
+
+    <!-- Статистика в зависимости от роли -->
+    {% if current_user.user_type.value == 'employer' and analytics %}
+    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 30px;">
+        <h4 style="color: #2c3e50; margin-bottom: 20px;">📊 Статистика работодателя</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+            <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                <div style="font-size: 32px; font-weight: bold; color: #007bff;">{{ analytics.total_jobs or 0 }}</div>
+                <div style="color: #6c757d;">Всего вакансий</div>
+            </div>
+            <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                <div style="font-size: 32px; font-weight: bold; color: #28a745;">{{ analytics.completed_jobs or 0 }}</div>
+                <div style="color: #6c757d;">Закрытых вакансий</div>
+            </div>
+            <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                <div style="font-size: 32px; font-weight: bold; color: #ffc107;">{{ analytics.success_rate or 0 }}%</div>
+                <div style="color: #6c757d;">Успешность</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if current_user.user_type.value == 'recruiter' and completed_jobs %}
+    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 30px;">
+        <h4 style="color: #2c3e50; margin-bottom: 20px;">🏆 Выполненные проекты</h4>
+        {% for job in completed_jobs %}
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <h5 style="margin: 0 0 5px 0; color: #007bff;">{{ job.title }}</h5>
+            <small style="color: #6c757d;">{{ job.employer.name }} • {{ job.created_at.strftime('%m.%Y') }}</small>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Кнопки действий -->
+    <div style="text-align: center; margin-top: 30px;">
+        {% if current_user.user_type.value == 'employer' %}
+            <a href="/my/jobs" style="background: #28a745; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-right: 15px;">
+                📋 Мои вакансии
+            </a>
+            <a href="/jobs/new" style="background: #17a2b8; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                ➕ Создать вакансию
+            </a>
+        {% elif current_user.user_type.value == 'recruiter' %}
+            <a href="/jobs" style="background: #007bff; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-right: 15px;">
+                🔍 Найти вакансии
+            </a>
+            <a href="/my/applications" style="background: #17a2b8; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                📋 Мои отклики
+            </a>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

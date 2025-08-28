@@ -45,6 +45,13 @@ class NotificationType(enum.Enum):
     JOB_REJECTED = "job_rejected"
     PAYMENT_SUCCESS = "payment_success"
 
+class MessageType(enum.Enum):
+    TEXT = "text"
+    FILE = "file"
+    SYSTEM = "system"
+    IMAGE = "image"
+    DOCUMENT = "document"
+
 class User(Base):
     __tablename__ = "users"
     
@@ -67,11 +74,11 @@ class User(Base):
     specialization = Column(String)
     portfolio_url = Column(String)
     resume_url = Column(String)
-    skills = Column(Text)  # JSON список навыков
+    skills = Column(Text)
     certifications = Column(Text)
-    languages = Column(String)  # JSON список языков
+    languages = Column(String)
     hourly_rate = Column(Float)
-    availability = Column(String)  # full-time, part-time, freelance
+    availability = Column(String)
     
     # Для работодателей
     company = Column(String)
@@ -92,7 +99,7 @@ class User(Base):
     last_login = Column(DateTime)
     last_activity = Column(DateTime)
     login_count = Column(Integer, default=0)
-    profile_completion = Column(Integer, default=0)  # процент заполненности профиля
+    profile_completion = Column(Integer, default=0)
     
     # Настройки уведомлений
     email_notifications = Column(Boolean, default=True)
@@ -103,13 +110,13 @@ class User(Base):
     # Даты
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    deleted_at = Column(DateTime)  # soft delete
+    deleted_at = Column(DateTime)
 
     # Relationships
     jobs = relationship("Job", back_populates="employer", foreign_keys="Job.employer_id")
     recruiter_applications = relationship("Application", back_populates="recruiter")
     sent_messages = relationship("Message", back_populates="sender", foreign_keys="Message.sender_id")
-    received_messages = relationship("Message", back_populates="receiver", foreign_keys="Message.receiver_id")
+    received_messages = relationship("Message", back_populates="recipient", foreign_keys="Message.recipient_id")
     recruiter_ratings = relationship("RecruiterRating", back_populates="recruiter", foreign_keys="RecruiterRating.recruiter_id")
     employer_ratings = relationship("RecruiterRating", back_populates="employer", foreign_keys="RecruiterRating.employer_id")
     notifications = relationship("Notification", back_populates="user", foreign_keys="Notification.user_id")
@@ -124,7 +131,7 @@ class Job(Base):
     
     # Основная информация
     title = Column(String, nullable=False)
-    slug = Column(String, unique=True)  # для SEO-дружественных URL
+    slug = Column(String, unique=True)
     description = Column(Text, nullable=False)
     short_description = Column(String)
     requirements = Column(Text)
@@ -134,20 +141,20 @@ class Job(Base):
     # Локация и тип работы
     location = Column(String)
     remote_work = Column(Boolean, default=False)
-    employment_type = Column(String, default="full-time")  # full-time, part-time, contract, freelance
-    experience_level = Column(String)  # junior, middle, senior, lead
+    employment_type = Column(String, default="full-time")
+    experience_level = Column(String)
     
     # Зарплата
     salary_min = Column(Integer)
     salary_max = Column(Integer)
     salary_currency = Column(String, default="тенге")
-    salary_type = Column(String, default="monthly")  # monthly, hourly, project
+    salary_type = Column(String, default="monthly")
     salary_negotiable = Column(Boolean, default=False)
     
     # Дополнительная информация
-    category = Column(String)  # IT, Marketing, Sales, etc.
-    tags = Column(Text)  # JSON список тегов
-    urgency = Column(String, default="normal")  # urgent, normal, low
+    category = Column(String)
+    tags = Column(Text)
+    urgency = Column(String, default="normal")
     deadline = Column(DateTime)
     
     # Настройки вакансии
@@ -201,20 +208,20 @@ class Payment(Base):
     currency = Column(String, default="KZT")
     description = Column(String)
     
-    # Скидки и налоги (опционально)
+    # Скидки и налоги
     discount_amount = Column(Float, default=0.0)
     tax_amount = Column(Float, default=0.0)
     processing_fee = Column(Float, default=0.0)
     
     # Статус и метод оплаты
     status = Column(Enum(PaymentStatus), default=PaymentStatus.PENDING)
-    payment_method = Column(String)  # card, bank_transfer, mobile, etc.
-    payment_provider = Column(String)  # stripe, paypal, kaspi, etc.
+    payment_method = Column(String)
+    payment_provider = Column(String)
     
     # Данные транзакции
     transaction_id = Column(String, unique=True)
-    payment_system_id = Column(String)  # ID в системе провайдера
-    payment_data = Column(Text)  # JSON с дополнительными данными
+    payment_system_id = Column(String)
+    payment_data = Column(Text)
     
     # Даты
     paid_at = Column(DateTime)
@@ -222,7 +229,7 @@ class Payment(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Дополнительные поля для отчетности
+    # Дополнительные поля
     invoice_number = Column(String, unique=True)
     receipt_url = Column(String)
     refund_reason = Column(String)
@@ -243,22 +250,23 @@ class Application(Base):
     cover_letter = Column(Text)
     expected_salary = Column(Integer)
     available_from = Column(DateTime)
+    expected_start_date = Column(DateTime)
     
     # Дополнительные поля
-    portfolio_urls = Column(Text)  # JSON список ссылок
-    attachments = Column(Text)  # JSON список файлов
-    questionnaire_answers = Column(Text)  # JSON ответы на вопросы
+    portfolio_urls = Column(Text)
+    attachments = Column(Text)
+    questionnaire_answers = Column(Text)
     
     # Статус и оценка
     status = Column(Enum(ApplicationStatus), default=ApplicationStatus.PENDING)
-    rating = Column(Float)  # оценка от работодателя
+    rating = Column(Float)
     employer_notes = Column(Text)
     recruiter_notes = Column(Text)
     
     # Процесс отбора
     interview_scheduled = Column(DateTime)
     interview_completed = Column(Boolean, default=False)
-    test_results = Column(Text)  # JSON результаты тестов
+    test_results = Column(Text)
     background_check = Column(Boolean)
     references_checked = Column(Boolean)
     
@@ -271,37 +279,60 @@ class Application(Base):
     # Relationships
     job = relationship("Job", back_populates="applications")
     recruiter = relationship("User", back_populates="recruiter_applications")
+    messages = relationship("Message", back_populates="related_application")
 
 class Message(Base):
     __tablename__ = "messages"
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    sender_id = Column(String, ForeignKey("users.id"))
-    receiver_id = Column(String, ForeignKey("users.id"))
+    sender_id = Column(String, ForeignKey("users.id"), nullable=False)
+    recipient_id = Column(String, ForeignKey("users.id"), nullable=False)
+    
+    # Ключевое поле для системы чата - связь с заявкой
+    related_application_id = Column(String, ForeignKey("applications.id"), nullable=True)
     
     # Основная информация
-    subject = Column(String)
     content = Column(Text, nullable=False)
-    message_type = Column(String, default="text")  # text, html, system
+    message_type = Column(Enum(MessageType), default=MessageType.TEXT)
     
     # Статус
     is_read = Column(Boolean, default=False)
     is_archived = Column(Boolean, default=False)
-    is_important = Column(Boolean, default=False)
     
-    # Дополнительные поля
-    attachments = Column(Text)  # JSON список файлов
-    related_job_id = Column(String, ForeignKey("jobs.id"))
-    related_application_id = Column(String, ForeignKey("applications.id"))
+    # Дополнительные поля для чата
+    attachments = Column(Text)
     
     # Даты
-    read_at = Column(DateTime)
     created_at = Column(DateTime, default=datetime.utcnow)
-    expires_at = Column(DateTime)
+    read_at = Column(DateTime)
 
     # Relationships
     sender = relationship("User", back_populates="sent_messages", foreign_keys=[sender_id])
-    receiver = relationship("User", back_populates="received_messages", foreign_keys=[receiver_id])
+    recipient = relationship("User", back_populates="received_messages", foreign_keys=[recipient_id])
+    related_application = relationship("Application", back_populates="messages", foreign_keys=[related_application_id])
+
+class ChatFile(Base):
+    __tablename__ = "chat_files"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    message_id = Column(String, ForeignKey("messages.id"), nullable=False)
+    
+    # Информация о файле
+    original_name = Column(String, nullable=False)
+    file_path = Column(String, nullable=False)
+    file_size = Column(Integer)
+    file_type = Column(String)
+    mime_type = Column(String)
+    
+    # Статус загрузки
+    is_uploaded = Column(Boolean, default=False)
+    
+    # Даты
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    message = relationship("Message", backref="files")
 
 class RecruiterRating(Base):
     __tablename__ = "recruiter_ratings"
@@ -312,23 +343,23 @@ class RecruiterRating(Base):
     job_id = Column(String, ForeignKey("jobs.id"))
     
     # Оценка
-    overall_rating = Column(Float, nullable=False)  # общая оценка 1-5
-    communication_rating = Column(Float)  # коммуникация
-    quality_rating = Column(Float)  # качество работы
-    timeliness_rating = Column(Float)  # своевременность
-    professionalism_rating = Column(Float)  # профессионализм
+    overall_rating = Column(Float, nullable=False)
+    communication_rating = Column(Float)
+    quality_rating = Column(Float)
+    timeliness_rating = Column(Float)
+    professionalism_rating = Column(Float)
     
     # Комментарии
     comment = Column(Text)
-    pros = Column(Text)  # плюсы
-    cons = Column(Text)  # минусы
+    pros = Column(Text)
+    cons = Column(Text)
     
     # Рекомендации
     would_hire_again = Column(Boolean)
     would_recommend = Column(Boolean)
     
     # Дополнительная информация
-    project_duration = Column(Integer)  # в днях
+    project_duration = Column(Integer)
     project_budget = Column(Float)
     
     # Даты
@@ -351,14 +382,14 @@ class Notification(Base):
     message = Column(Text, nullable=False)
     
     # Дополнительные данные
-    data = Column(Text)  # JSON дополнительные данные
-    action_url = Column(String)  # ссылка для действия
-    image_url = Column(String)  # картинка для уведомления
+    data = Column(Text)
+    action_url = Column(String)
+    image_url = Column(String)
     
     # Статус
     is_read = Column(Boolean, default=False)
-    is_sent = Column(Boolean, default=False)  # отправлено ли уведомление
-    channel = Column(String, default="app")  # app, email, sms, push
+    is_sent = Column(Boolean, default=False)
+    channel = Column(String, default="app")
     
     # Связанные объекты
     related_job_id = Column(String)
@@ -368,7 +399,7 @@ class Notification(Base):
     related_message_id = Column(String)
     
     # Даты
-    scheduled_for = Column(DateTime)  # запланировано на
+    scheduled_for = Column(DateTime)
     sent_at = Column(DateTime)
     read_at = Column(DateTime)
     expires_at = Column(DateTime)

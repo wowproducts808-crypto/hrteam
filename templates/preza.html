@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Красота начинается с сервиса | Аналитика клиентского опыта</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/></svg>');
+            background-size: 50px 50px;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #ff6b6b;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Section styles */
+        .section {
+            padding: 80px 0;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 50px;
+            color: #333;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            display: block;
+            margin: 20px auto;
+            border-radius: 2px;
+        }
+
+        /* About section */
+        .about {
+            background: #f8f9fa;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 50px;
+            align-items: center;
+        }
+
+        .stats {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .stat-item {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ff6b6b;
+            display: block;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        /* Services grid */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .service-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+            border-color: #ff6b6b;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .service-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .service-title {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        /* Case study */
+        .case-study {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .case-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .metric-card {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        /* Pricing */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .pricing-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+            border: 2px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card:hover {
+            border-color: #ff6b6b;
+            transform: translateY(-5px);
+        }
+
+        .pricing-card.featured {
+            border-color: #ff6b6b;
+            transform: scale(1.05);
+        }
+
+        .pricing-card.featured::before {
+            content: 'Популярный';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff6b6b;
+            color: white;
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ff6b6b;
+            margin: 20px 0;
+        }
+
+        .price-unit {
+            font-size: 1rem;
+            color: #666;
+        }
+
+        /* Contact */
+        .contact {
+            background: #f8f9fa;
+            text-align: center;
+        }
+
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .contact-item {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .contact-icon {
+            width: 50px;
+            height: 50px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .case-metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-card.featured {
+                transform: none;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        /* Utility classes */
+        .text-center {
+            text-align: center;
+        }
+
+        .mb-30 {
+            margin-bottom: 30px;
+        }
+
+        .highlight {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <section class="header">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Красота начинается с сервиса</h1>
+                <p class="hero-subtitle">Аналитика и улучшение клиентского опыта для вашего бьюти-бизнеса в Казахстане</p>
+                <p style="margin-bottom: 30px; font-size: 1.2rem;">Не просто услуги — эмоции, к которым хочется возвращаться</p>
+                <a href="#contact" class="cta-button">Получить консультацию</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About -->
+    <section class="about section">
+        <div class="container">
+            <h2 class="section-title">О нас</h2>
+            <div class="about-grid">
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-number">50 000+</span>
+                        <span class="stat-label">проектов</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">300+</span>
+                        <span class="stat-label">городов СНГ и Индии</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">15+</span>
+                        <span class="stat-label">лет опыта</span>
+                    </div>
+                </div>
+                <div>
+                    <h3 style="font-size: 2rem; margin-bottom: 20px; color: #333;">Международное агентство аналитики клиентского опыта</h3>
+                    <p style="font-size: 1.1rem; line-height: 1.8; color: #666;">
+                        Мы — международное агентство, специализирующееся на аналитике клиентского опыта. С 2010 года мы успешно реализовали более 50 000 проектов в 300+ городах СНГ и Индии. Наш опыт включает успешное сотрудничество с ведущими локальными и международными бьюти-брендами. Мы знаем, как сделать ваш бизнес успешным на рынке Казахстана.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Journey -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">От первого визита до постоянного клиента</h2>
+            <div style="text-align: center; max-width: 800px; margin: 0 auto;">
+                <p style="font-size: 1.2rem; line-height: 1.8; color: #666;">
+                    Вы знаете, насколько важно первое впечатление. Мы помогаем не просто открыть дверь для клиента, а провести его по всему пути — от первой записи до статуса постоянного клиента. Мы покажем вам, как создать безупречный сервис, который заставит клиентов возвращаться именно к вам, выбирая вас среди конкурентов.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services -->
+    <section class="section" style="background: #f8f9fa;">
+        <div class="container">
+            <h2 class="section-title">Наши услуги для вашего салона</h2>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">🔍</div>
+                    <h3 class="service-title">Тайный покупатель</h3>
+                    <p>Оценим качество обслуживания с помощью проверок «тайный покупатель», выявив сильные стороны и зоны роста.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">📋</div>
+                    <h3 class="service-title">Стандарты сервиса</h3>
+                    <p>Разработаем скрипты и стандарты сервиса для администраторов и мастеров, которые станут визитной карточкой вашего салона.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">📊</div>
+                    <h3 class="service-title">Анализ конкурентов</h3>
+                    <p>Проведем глубокий анализ конкурентов: цены, программы лояльности, уровень сервиса и маркетинговые стратегии.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">⭐</div>
+                    <h3 class="service-title">Управление репутацией</h3>
+                    <p>Выстроим системную работу с отзывами — от мониторинга площадок до профессиональных ответов.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">🗺️</div>
+                    <h3 class="service-title">Customer Journey Map</h3>
+                    <p>Создадим визуализированную карту пути клиента, которая поможет устранить барьеры, снижающие лояльность.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">📈</div>
+                    <h3 class="service-title">BI-дашборды</h3>
+                    <p>Предоставим доступ к данным по отзывам, трендам и конкурентам в режиме реального времени.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Case Study -->
+    <section class="case-study section">
+        <div class="container">
+            <h2 class="section-title" style="color: white;">Пример нашего успеха</h2>
+            <div style="text-align: center; max-width: 800px; margin: 0 auto 40px;">
+                <p style="font-size: 1.2rem; line-height: 1.8;">
+                    Сеть премиальных салонов красоты (25 филиалов в России и СНГ) обратилась к нам для оценки качества обслуживания и соответствия стандартам бренда. Мы провели 1,5-месячную программу проверок методом «тайный клиент».
+                </p>
+            </div>
+            <div class="case-metrics">
+                <div class="metric-card">
+                    <span class="metric-value">4.3/5</span>
+                    <span>Средний балл по сети</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-value">4.6/5</span>
+                    <span>Прогноз через 6 месяцев</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-value">+10%</span>
+                    <span>Рост повторных визитов</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-value">+15%</span>
+                    <span>Увеличение среднего чека</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Тарифы и цены</h2>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Звонок-консультация</h3>
+                    <div class="price">от 4 500 ₸ <span class="price-unit">за проверку</span></div>
+                    <ul style="list-style: none; text-align: left;">
+                        <li>✓ До 10 проверок: от 8 500 ₸</li>
+                        <li>✓ 10-20 проверок: от 6 500 ₸</li>
+                        <li>✓ Более 20 проверок: от 4 500 ₸</li>
+                    </ul>
+                </div>
+                <div class="pricing-card featured">
+                    <h3>Комплексная проверка</h3>
+                    <div class="price">от 11 000 ₸ <span class="price-unit">за проверку</span></div>
+                    <ul style="list-style: none; text-align: left;">
+                        <li>✓ Звонок + визит-консультация</li>
+                        <li>✓ До 10 проверок: от 15 000 ₸</li>
+                        <li>✓ 10-20 проверок: от 13 000 ₸</li>
+                        <li>✓ Более 20 проверок: от 11 000 ₸</li>
+                    </ul>
+                </div>
+                <div class="pricing-card">
+                    <h3>Визит-консультация</h3>
+                    <div class="price">от 8 500 ₸ <span class="price-unit">за проверку</span></div>
+                    <ul style="list-style: none; text-align: left;">
+                        <li>✓ До 10 проверок: от 13 000 ₸</li>
+                        <li>✓ 10-20 проверок: от 11 000 ₸</li>
+                        <li>✓ Более 20 проверок: от 8 500 ₸</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="margin-top: 60px;">
+                <h3 style="text-align: center; font-size: 2rem; margin-bottom: 30px;">Дополнительные услуги</h3>
+                <div class="services-grid">
+                    <div class="service-card">
+                        <h4>Разработка стандартов</h4>
+                        <p><strong>Скрипты для персонала:</strong> от 150 000 ₸</p>
+                        <p><strong>Стандарты сервиса:</strong> от 540 000 ₸</p>
+                    </div>
+                    <div class="service-card">
+                        <h4>Конкурентная аналитика</h4>
+                        <p><strong>Анализ сервиса:</strong> от 240 000 ₸</p>
+                        <p><strong>Анализ цен и акций:</strong> от 240 000 ₸</p>
+                    </div>
+                    <div class="service-card">
+                        <h4>Управление репутацией</h4>
+                        <p><strong>Мониторинг отзывов:</strong> от 17 500 ₸</p>
+                        <p><strong>Ответы на отзывы:</strong> от 8 500 ₸</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact -->
+    <section class="contact section" id="contact">
+        <div class="container">
+            <h2 class="section-title">Свяжитесь с нами</h2>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <div class="contact-icon">📞</div>
+                    <h4>Телефон</h4>
+                    <p>+7 (XXX) XXX-XX-XX</p>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">📧</div>
+                    <h4>Email</h4>
+                    <p>info@ctrlservice.kz</p>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">📍</div>
+                    <h4>Адрес</h4>
+                    <p>г. Алматы, Казахстан</p>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="tel:+7XXXXXXXXX" class="cta-button">Заказать консультацию</a>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in-up');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.service-card, .pricing-card, .contact-item').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
+

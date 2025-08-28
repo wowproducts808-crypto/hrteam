@@ -23,6 +23,15 @@
             <div>
               <h4 style="margin: 0; color: #333;">
                 {% if not notification.is_read %}🔴{% else %}✅{% endif %}
+                {% if notification.type.value == 'new_message' %}💬{% endif %}
+                {% if notification.type.value == 'new_application' %}📝{% endif %}
+                {% if notification.type.value == 'new_job' %}🏢{% endif %}
+                {% if notification.type.value == 'new_rating' %}⭐{% endif %}
+                {% if notification.type.value == 'job_approved' %}✅{% endif %}
+                {% if notification.type.value == 'job_rejected' %}❌{% endif %}
+                {% if notification.type.value == 'job_status_change' %}🔄{% endif %}
+                {% if notification.type.value == 'application_status_change' %}📋{% endif %}
+                {% if notification.type.value == 'payment_success' %}💳{% endif %}
                 {{ notification.title }}
               </h4>
               <small style="color: #666;">{{ notification.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
@@ -40,22 +49,79 @@
           <p style="margin: 10px 0; color: #555;">{{ notification.message }}</p>
           
           <div style="border-top: 1px solid #ddd; padding-top: 10px;">
-            {% if notification.type == 'new_application' and notification.related_job_id %}
+            {% if notification.type.value == 'new_application' and notification.related_job_id %}
               <a href="/my/jobs" style="background: #007bff; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
-                Посмотреть отклики
+                📝 Посмотреть отклики
               </a>
-            {% elif notification.type == 'new_job' and notification.related_job_id %}
-              <a href="/jobs" style="background: #28a745; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
-                Посмотреть вакансию
+            
+            {% elif notification.type.value == 'new_job' and notification.related_job_id %}
+              <a href="/admin/jobs" style="background: #28a745; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+                🏢 Посмотреть вакансию
               </a>
-            {% elif notification.type == 'new_message' and notification.related_user_id %}
+            
+            {% elif notification.type.value == 'new_message' and notification.related_application_id %}
+              <!-- Основная ссылка на чат конкретной заявки -->
+              <a href="/applications/{{ notification.related_application_id }}/messages" style="background: #ffc107; color: #333; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+                💬 Открыть чат
+              </a>
+              <!-- Дополнительная ссылка на детали заявки -->
+              <a href="/applications/{{ notification.related_application_id }}" style="background: #17a2b8; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+                📋 Детали заявки
+              </a>
+            
+            {% elif notification.type.value == 'new_message' and notification.related_user_id %}
+              <!-- Резервная ссылка на общие сообщения -->
               <a href="/messages" style="background: #ffc107; color: #333; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
-                Открыть сообщения
+                💬 Открыть сообщения
               </a>
-            {% elif notification.type == 'new_rating' %}
+            
+            {% elif notification.type.value == 'new_rating' %}
               <a href="/my/applications" style="background: #6f42c1; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
-                Мои проекты
+                ⭐ Мои проекты
               </a>
+            
+            {% elif notification.type.value == 'job_approved' and notification.related_job_id %}
+              <a href="/jobs/{{ notification.related_job_id }}" style="background: #28a745; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+                👁️ Посмотреть вакансию
+              </a>
+              <a href="/my/jobs" style="background: #007bff; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+                📋 Мои вакансии
+              </a>
+            
+            {% elif notification.type.value == 'job_rejected' and notification.related_job_id %}
+              <a href="/my/jobs" style="background: #dc3545; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+                📋 Мои вакансии
+              </a>
+            
+            {% elif notification.type.value == 'job_status_change' and notification.related_job_id %}
+              {% if current_user.user_type.value == 'recruiter' %}
+                <a href="/my/applications" style="background: #17a2b8; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+                  📝 Мои заявки
+                </a>
+              {% else %}
+                <a href="/jobs/{{ notification.related_job_id }}" style="background: #17a2b8; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+                  👁️ Посмотреть вакансию
+                </a>
+              {% endif %}
+            
+            {% elif notification.type.value == 'application_status_change' and notification.related_application_id %}
+              <a href="/applications/{{ notification.related_application_id }}" style="background: #17a2b8; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+                📋 Посмотреть заявку
+              </a>
+              <a href="/my/applications" style="background: #6c757d; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+                📝 Все мои заявки
+              </a>
+            
+            {% elif notification.type.value == 'payment_success' and notification.related_job_id %}
+              <a href="/my/jobs" style="background: #28a745; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+                💳 Мои вакансии
+              </a>
+              {% if notification.related_payment_id %}
+                <a href="/payments/{{ notification.related_payment_id }}" style="background: #6c757d; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+                  🧾 Детали платежа
+                </a>
+              {% endif %}
+            
             {% endif %}
           </div>
         </div>
@@ -64,7 +130,36 @@
   {% else %}
     <div style="text-align: center; padding: 50px; color: #666;">
       <h3>📭 Нет уведомлений</h3>
-      <p>Здесь будут появляться уведомления о новых откликах, вакансиях и сообщениях</p>
+      <p>Здесь будут появляться уведомления о новых откликах, вакансиях, сообщениях и других событиях</p>
+      <div style="margin-top: 30px;">
+        <a href="/jobs" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-right: 10px;">
+          🔍 Просмотреть вакансии
+        </a>
+        {% if current_user.user_type.value == 'employer' %}
+          <a href="/jobs/new" style="background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-right: 10px;">
+            ➕ Создать вакансию
+          </a>
+        {% endif %}
+      </div>
     </div>
   {% endif %}
+
+  <!-- Дополнительные стили для уведомлений -->
+  <style>
+    .notification-item {
+      transition: all 0.3s ease;
+    }
+    .notification-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .notification-buttons a {
+      transition: all 0.2s ease;
+    }
+    .notification-buttons a:hover {
+      transform: translateY(-1px);
+      opacity: 0.9;
+    }
+  </style>
+
 {% endblock %}
